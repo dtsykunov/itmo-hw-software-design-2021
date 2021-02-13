@@ -1,6 +1,6 @@
 from .common import Pipeline
-from .parser import Parser
 from .executor import Executor
+from .parser import Parser
 
 if __name__ == "__main__":
     while True:
