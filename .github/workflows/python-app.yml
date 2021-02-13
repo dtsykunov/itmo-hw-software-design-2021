@@ -33,7 +33,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=79 --statistics
     - name: Check with mypy
       run: |
-        mypy .
+        mypy ./cli/
     - name: Test with pytest
       run: |
         pytest
