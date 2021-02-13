@@ -36,4 +36,4 @@ jobs:
         pytest
     - name: Extra commands
       run: |
-        ./run.sh
+        sh ./run.sh
