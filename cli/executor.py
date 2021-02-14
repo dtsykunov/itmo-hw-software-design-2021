@@ -1,13 +1,13 @@
-import logging
-import os
-import io
 import importlib.resources as res
+import io
+import logging
 import multiprocessing as mp
+import os
 import subprocess as sp
 import sys
 
-from .common import Command, Pipeline
 from . import builtins
+from .common import Command, Pipeline
 
 
 class Executor:
