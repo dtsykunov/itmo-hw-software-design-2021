@@ -1,3 +1,4 @@
+import enum
 import importlib.resources as res
 import io
 import logging
@@ -9,7 +10,7 @@ import sys
 from . import builtins
 from .common import Command, Pipeline
 
-_builtins = ["echo", "cat", "wc", "pwd"]
+_builtins = ["echo", "cat", "wc", "pwd", "exit"]
 
 
 def _isbuiltin(cmd: Command) -> bool:
@@ -27,7 +28,7 @@ def _getbuiltinpath(cmd: Command) -> str:
 
 def _exec(
     cmd: Command, stdin: io.IOBase, stdout: io.IOBase, stderr: io.IOBase
-) -> (io.IOBase, io.IOBase):
+) -> sp.Popen:
     return (
         _exec_builtin(cmd, stdin, stdout, stderr)
         if _isbuiltin(cmd)
@@ -35,7 +36,7 @@ def _exec(
     )
 
 
-def _exec_builtin(cmd, stdin, stdout, stderr) -> (io.IOBase, io.IOBase):
+def _exec_builtin(cmd: Command, stdin, stdout, stderr) -> sp.Popen:
     assert _isbuiltin(cmd)
     return sp.Popen(
         [sys.executable, _getbuiltinpath(cmd)] + cmd.args,
@@ -45,7 +46,7 @@ def _exec_builtin(cmd, stdin, stdout, stderr) -> (io.IOBase, io.IOBase):
     )
 
 
-def _exec_system(cmd: Command, stdin, stdout, stderr) -> (io.IOBase, io.IOBase):
+def _exec_system(cmd: Command, stdin, stdout, stderr) -> sp.Popen:
     return sp.Popen(
         [cmd.name] + cmd.args,
         stdin=stdin,
@@ -59,10 +60,14 @@ class Executor:
     def execute(
         pipeline: Pipeline, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr
     ) -> None:
-        procs = []
+        procs: list[sp.Popen] = []
         for cmd in pipeline.cmds[:-1]:
             procs.append(p := _exec(cmd, p.stdout, sp.PIPE, sp.PIPE))
             stdin = p.stdout
-        procs.append(_exec(pipeline.cmds[-1], stdin, stdout, stderr))
+        last: Command = pipeline.cmds[-1]
+        if last.name == "exit":
+            sys.exit(0)
+            return
+        procs.append(_exec(last, stdin, stdout, stderr))
         for proc in procs:
             proc.wait()

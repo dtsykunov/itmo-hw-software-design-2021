@@ -97,3 +97,9 @@ class ExecutorTest(ut.TestCase):
         self.assertEqual(os.read(stdout[0], len(pwd)), pwd)
         with self.assertRaises(BlockingIOError):
             os.read(stderr[0], 1)
+
+    def test_exit(self):
+        pipeline: Pipeline = Pipeline([Command("exit")])
+        with mock.patch("cli.executor.sys.exit") as m:
+            Executor.execute(pipeline)
+            m.assert_called()
