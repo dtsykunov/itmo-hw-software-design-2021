@@ -5,6 +5,6 @@ if __name__ == "__main__":
         lines, words, byts = 0, 0, 0
         for line in f:
             lines += 1
-            words += len(lines.split(" "))
+            words += len(line.split(" "))
             byts = len(line)
         print(lines, words, byts)
