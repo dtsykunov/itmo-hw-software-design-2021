@@ -62,12 +62,16 @@ class Executor:
     ) -> None:
         procs: list[sp.Popen] = []
         for cmd in pipeline.cmds[:-1]:
-            procs.append(p := _exec(cmd, p.stdout, sp.PIPE, sp.PIPE))
+            p = _exec(cmd, stdin, sp.PIPE, sp.PIPE)
+            procs.append(p)
             stdin = p.stdout
         last: Command = pipeline.cmds[-1]
         if last.name == "exit":
             sys.exit(0)
             return
-        procs.append(_exec(last, stdin, stdout, stderr))
-        for proc in procs:
+        procs.append(_exec(last, stdin, sp.PIPE, sp.PIPE))
+        for proc in procs[:-1]:
             proc.wait()
+        out, err = procs[-1].communicate()
+        stdout.write(out.decode('utf-8'))
+        stderr.write(err.decode('utf-8'))
