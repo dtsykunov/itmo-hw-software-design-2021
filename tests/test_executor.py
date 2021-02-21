@@ -4,6 +4,7 @@ import subprocess as sp
 import sys
 import unittest as ut
 from contextlib import contextmanager
+from unittest import mock
 
 from cli.common import Command, Pipeline
 from cli.executor import Executor
@@ -34,6 +35,8 @@ class ExecutorTest(ut.TestCase):
             pipeline: Pipeline = Pipeline([Command("./tests/test.sh", [])])
             Executor.execute(pipeline)
             os.write(stdin[1], hello)
+        os.set_blocking(stdout[0], False)
+        os.set_blocking(stderr[0], False)
         self.assertEqual(os.read(stdout[0], len(hello)), hello)
 
     # I wanted to use "mock" package to assert the fact that it is builtin commands
@@ -47,7 +50,11 @@ class ExecutorTest(ut.TestCase):
             pipeline: Pipeline = Pipeline([Command("echo", [hello])])
             Executor.execute(pipeline)
             os.write(stdin[1], hello)
+        os.set_blocking(stdout[0], False)
+        os.set_blocking(stderr[0], False)
         self.assertEqual(os.read(stdout[0], len(hello)), hello)
+        with self.assertRaises(BlockingIOError):
+            os.read(stderr[0], 1)
 
     def test_cat(self):
         testfile = "./tests/test.txt"
@@ -67,16 +74,26 @@ class ExecutorTest(ut.TestCase):
 
     def test_wc(self):
         testfile = "./tests/test.txt"
-        with open(testfile, "rb") as f:
-            content = f.read()
+        res = b"1 5 21\n"
 
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with redirect(stdin[0], stdout[1], stderr[1]):
             pipeline: Pipeline = Pipeline([Command("wc", [testfile])])
             Executor.execute(pipeline)
-            os.write(stdin[1], content)
         os.set_blocking(stdout[0], False)
         os.set_blocking(stderr[0], False)
-        self.assertEqual(os.read(stdout[0], len(content)), content)
+        self.assertEqual(os.read(stdout[0], len(res)), res)
+        with self.assertRaises(BlockingIOError):
+            os.read(stderr[0], 1)
+
+    def test_pwd(self):
+        pwd = os.getcwd().encode("utf-8")
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with redirect(stdin[0], stdout[1], stderr[1]):
+            pipeline: Pipeline = Pipeline([Command("pwd", [])])
+            Executor.execute(pipeline)
+        os.set_blocking(stdout[0], False)
+        os.set_blocking(stderr[0], False)
+        self.assertEqual(os.read(stdout[0], len(pwd)), pwd)
         with self.assertRaises(BlockingIOError):
             os.read(stderr[0], 1)
