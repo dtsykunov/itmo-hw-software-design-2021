@@ -16,9 +16,9 @@ def _isbuiltin(cmd: Command) -> bool:
     return cmd.name in _builtins
 
 
-def _getbuiltinpath(name: str) -> str:
+def _getbuiltinpath(cmd: Command) -> str:
     try:
-        with res.path(builtins, name + ".py") as p:
+        with res.path(builtins, cmd.name + ".py") as p:
             return str(p.resolve())
     except FileNotFoundError as e:
         logging.error(e)
@@ -38,7 +38,7 @@ def _exec(
 def _exec_builtin(cmd, stdin, stdout, stderr) -> (io.IOBase, io.IOBase):
     assert _isbuiltin(cmd)
     return sp.Popen(
-        [sys.executable, _getbuiltinpath(cmd.name)] + cmd.args,
+        [sys.executable, _getbuiltinpath(cmd)] + cmd.args,
         stdin=stdin,
         stdout=stdout,
         stderr=stderr,
