@@ -61,3 +61,9 @@ class ParserTest(TestCase):
         raw = "echo \"hello '$a' world\""
         parsed = Parser.parse(raw)
         self.assertEqual(parsed, Command("echo", ["hello 'b' world"]))
+
+    @mock.patch.dict(os.environ, {"a": "ex", "b": "it"})
+    def test_quotes(self):
+        raw = "$a$b"
+        parsed = Parser.parse(raw)
+        self.assertEqual(parsed, Command("exit"))
