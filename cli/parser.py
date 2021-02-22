@@ -179,7 +179,7 @@ def _pipeline(tokens: list[str]) -> Pipeline:
     for pipe in pipeswords:
         pp: list[list[str]] = []
         for words in pipe:
-            ww: list[str]
+            ww: list[str] = []
             for word in words:
                 ww.append(_remove_quotes_if_needed(word))
             pp.append(ww)
@@ -201,7 +201,7 @@ def _pipeline(tokens: list[str]) -> Pipeline:
         else:
             res.append(Command(p[0], p[1:]))
 
-    return res
+    return Pipeline(res)
 
 
 class Parser:
