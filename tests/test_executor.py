@@ -1,6 +1,4 @@
-import io
 import os
-import subprocess as sp
 import sys
 import unittest as ut
 from contextlib import contextmanager
@@ -43,7 +41,7 @@ class ExecutorTest(ut.TestCase):
 
     @mock.patch("cli.executor._exec_builtin")
     def call_builtin(self, pipeline, mock):
-        # ignoring the output, checking that builtin command is called
+        # ignoring the output, checking only that builtin command was called
         with open(os.devnull, "w") as f:
             Executor.execute(pipeline, stdout=f)
         mock.assert_called()
@@ -54,8 +52,8 @@ class ExecutorTest(ut.TestCase):
         self.call_builtin(Pipeline([Command("echo")]))
         self.call_builtin(Pipeline([Command("pwd")]))
         self.call_builtin(Pipeline([Command("wc", ["./tests/test.txt"])]))
-        # "exit" and "=" are executed as external processes if they don't appear at the end of the pipeline
-        # otherwise they're executed in the current shell process
+        # "exit" and "=" are executed as external processes if they don't appear at the
+        # end of the pipeline, otherwise they're executed in the current shell process
         self.call_builtin(Pipeline([Command("exit"), Command("./tests/test.sh")]))
         self.call_builtin(
             Pipeline([Command("=", ["a", "b"]), Command("./tests/test.sh")])
