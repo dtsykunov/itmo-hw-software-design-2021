@@ -1,10 +1,9 @@
-import math
 import collections
 import itertools
 import os
-from typing import Callable, Any
+from typing import Any, Callable
 
-from .common import Pipeline, Command
+from .common import Command, Pipeline
 
 
 # https://stackoverflow.com/a/1474848
