@@ -1,6 +1,7 @@
-.PHONY: test run check lint
-
 SRCDIRS=./cli ./tests
+
+.PHONY: test lint ci install run
+
 test:
 	python -m unittest discover ./tests
 
