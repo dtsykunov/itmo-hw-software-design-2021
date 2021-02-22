@@ -10,7 +10,6 @@ import sys
 from . import builtins
 from .common import Command, Pipeline
 
-# "exit" and "=" when executed in seperate process are NOOPT
 _builtins = ["echo", "cat", "wc", "pwd", "exit", "="]
 
 
@@ -74,4 +73,6 @@ class Executor:
             os.environ[last.args[0]] = last.args[1]
         else:
             procs.append(_exec(last, stdin, stdout, stderr))
-        procs[-1].communicate()
+
+        if procs:
+            procs[-1].communicate()
