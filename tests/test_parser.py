@@ -46,8 +46,7 @@ class ParserTest(TestCase):
 
     @mock.patch.dict(os.environ, {"a": "b"})
     def test_no_expansion(self):
-        var = "a"
-        s = "$" + var
+        s = "$a"
         raw = "echo '" + s + "'"
         parsed = Parser.parse(raw)
         self.assertEqual(parsed, Pipeline([Command("echo", [s])]))
