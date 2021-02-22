@@ -1,10 +1,11 @@
 import os
-from unittest import TestCase, mock
+from unittest import TestCase, mock, skip
 
 from cli.common import Command, Pipeline
-from cli.parser import Parser
+from cli.parser import Parser, _tokenize
 
 
+@skip("testing subtests")
 class ParserTest(TestCase):
     def test_echo(self):
         raw = "echo"
@@ -67,3 +68,46 @@ class ParserTest(TestCase):
         raw = "$a$b"
         parsed = Parser.parse(raw)
         self.assertEqual(parsed, Command("exit"))
+
+
+class TokenizeTest(TestCase):
+    def test_echo(self):
+        raw = "echo"
+        self.assertEqual([raw], _tokenize(raw))
+
+    def test_args(self):
+        raw = ["echo", " ", "hello"]
+        self.assertEqual(raw, _tokenize("".join(raw)))
+
+    def test_squotes(self):
+        raw = "'echo hello'"
+        self.assertEqual([raw[1:-1]], _tokenize(raw))
+
+    def test_dquotes(self):
+        raw = '"echo hello"'
+        self.assertEqual([raw[1:-1]], _tokenize(raw))
+
+    def test_quotes_1(self):
+        raw = ["echo", " ", '"echo hello"', " ", "|", " ", "cat"]
+
+        self.assertEqual(raw[0:2] + [raw[2][1:-1]] + raw[3:], _tokenize("".join(raw)))
+
+    def test_quotes_2(self):
+        raw = ["echo", " ", '\'" " "\'']
+        res = raw[0:2] + [raw[2][1:-1]]
+        self.assertEqual(res, _tokenize("".join(raw)))
+
+    def test_quotes_3(self):
+        raw = ["echo", " ", "\" ' ' ' \""]
+        res = raw[0:2] + [raw[2][1:-1]]
+        self.assertEqual(res, _tokenize("".join(raw)))
+
+    def test_expansion(self):
+        raw = "$a$b"
+        with mock.patch.dict(os.environ, {"a": "ex", "b": "it"}, clear=True) as m:
+            self.assertEqual(["ex", "it"], _tokenize(raw))
+
+    def test_expansion2(self):
+        raw = "$a $b"
+        with mock.patch.dict(os.environ, {"a": "ex", "b": "it"}, clear=True) as m:
+            self.assertEqual(["ex", " ", "it"], _tokenize(raw))
