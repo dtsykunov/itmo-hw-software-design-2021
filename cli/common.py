@@ -10,6 +10,9 @@ class Command:
             return self.name == other.name and self.args == other.args
         return False
 
+    def __str__(self):
+        return "Command(" + str(self.name) + ", " + str(self.args) + ")"
+
 
 class Pipeline:
     def __init__(self, cmds: list[Command]):
@@ -19,3 +22,6 @@ class Pipeline:
         if isinstance(other, Pipeline):
             return self.cmds == other.cmds
         return False
+
+    def __str__(self):
+        return "Pipeline([" + ", ".join(str(cmd) for cmd in self.cmds) + "])"

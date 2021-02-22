@@ -1,9 +1,10 @@
 import os
-from unittest import TestCase, mock, skip
+from unittest import TestCase, mock
 
 from cli.common import Command, Pipeline
 from cli.parser import (
     Parser,
+    _check_balanced,
     _del_conseq,
     _remove_quotes_if_needed,
     _splitat,
@@ -11,7 +12,6 @@ from cli.parser import (
 )
 
 
-@skip("testing subtests")
 class ParserTest(TestCase):
     def test_echo(self):
         raw = "echo"
@@ -29,10 +29,9 @@ class ParserTest(TestCase):
         cat = "cat"
         raw = hello + "|" + cat
         parsed: Pipeline = Parser.parse(raw)
-        hello_split = raw.split(" ")
-        self.assertEqual(
-            parsed, Pipeline([Command(hello_split[0], hello_split[1:]), Command(cat)])
-        )
+        hello_split = hello.split(" ")
+        shouldbe = Pipeline([Command(hello_split[0], hello_split[1:]), Command(cat)])
+        self.assertEqual(str(shouldbe), str(parsed))
 
     def test_single_quotes(self):
         raw = "echo 'hello world'"
@@ -67,7 +66,8 @@ class ParserTest(TestCase):
     def test_quotes(self):
         raw = "echo \"hello '$a' world\""
         parsed = Parser.parse(raw)
-        self.assertEqual(parsed, Command("echo", ["hello 'b' world"]))
+        shouldbe = Pipeline([Command("echo", ["hello 'b' world"])])
+        self.assertEqual(str(shouldbe), str(parsed))
 
     @mock.patch.dict(os.environ, {"a": "ex", "b": "it"})
     def test_quotes(self):
@@ -133,3 +133,10 @@ class HelpersTest(TestCase):
         self.assertEqual(a[1:-1], _remove_quotes_if_needed(a))
         self.assertEqual(a[1:-1], _remove_quotes_if_needed(a[1:-1]))
         self.assertEqual("", _remove_quotes_if_needed(""))
+
+    def test_check_balanced(self):
+        raw = '""'
+        self.assertIsNone(_check_balanced(raw))
+        raw1 = '"""'
+        with self.assertRaises(SyntaxError):
+            _check_balanced(raw1)

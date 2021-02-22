@@ -1,6 +1,7 @@
 import collections
 import itertools
 import os
+import shlex  # look at _check_balanced function
 from typing import Any, Callable
 
 from .common import Command, Pipeline
@@ -33,30 +34,17 @@ def _validate(line: str):
     _check_balanced(line)
 
 
-# https://www.geeksforgeeks.org/check-for-balanced-parentheses-in-python/
-# Function to check quotes
+# # https://www.geeksforgeeks.org/check-for-balanced-parentheses-in-python/
 def _check_balanced(raw: str) -> None:
     """
     Check if all single and double quotes are balanced in the strings.
     Raise SyntaxError if not.
     """
-    quotes = ['"', "'"]
-    stack = []
-    for i in raw:
-        if i in quotes:
-            stack.append(i)
-        elif i in quotes:
-            pos = quotes.index(i)
-            if (len(stack) > 0) and (quotes[pos] == stack[len(stack) - 1]):
-                stack.pop()
-            else:
-                raise SyntaxError("Unbalanced quotes")
-    if len(stack) != 0:
+    # i got too tired at this point
+    try:
+        shlex.split(raw)
+    except ValueError:
         raise SyntaxError("Unbalanced quotes")
-
-
-def _expand_vars(tokens: list[str]) -> list[str]:
-    ...
 
 
 def _tokenize(raw: str, inner=False) -> list[str]:
@@ -89,7 +77,8 @@ def _tokenize(raw: str, inner=False) -> list[str]:
             continue
         next_sp = end if (end := raw.find(" ", i + 1)) != -1 else len(raw)
         next_dl = end if (end := raw.find("$", i + 1)) != -1 else len(raw)
-        end = min(next_sp, next_dl)
+        next_p = end if (end := raw.find("|", i + 1)) != -1 else len(raw)
+        end = min(next_sp, next_dl, next_p)
         if char == "$":
             word = raw[i + 1 : end]
             if word:
