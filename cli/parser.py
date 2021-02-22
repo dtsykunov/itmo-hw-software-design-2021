@@ -3,24 +3,42 @@ import re
 from .common import Pipeline
 
 
+def _validate(line: str):
+    _check_balanced(line)
+
+
+# https://www.geeksforgeeks.org/check-for-balanced-parentheses-in-python/
+# Function to check quotes
+def _check_balanced(raw: str) -> None:
+    quotes = ['"', "'"]
+    stack = []
+    for i in raw:
+        if i in quotes:
+            stack.append(i)
+        elif i in quotes:
+            pos = quotes.index(i)
+            if (len(stack) > 0) and (quotes[pos] == stack[len(stack) - 1]):
+                stack.pop()
+            else:
+                raise SyntaxError("Unbalanced quotes")
+    if len(stack) != 0:
+        raise SyntaxError("Unbalanced quotes")
+
+
+def _expand_vars(raw: str) -> str:
+    ...
+
+
+def _tokenize(raw: str) -> list[str]:
+    ...
+
+
+def _pipeline(tokens: list[str]) -> Pipeline:
+    ...
+
+
 class Parser:
-    @classmethod
-    def parse(cls, line: str) -> Pipeline:
-        cls._validate(line)
-        line = cls._expand(line)
-
-    @classmethod
-    def _validate(cls, line: str):
-        cls._check_balanced_quotes(line)
-
-    @classmethod
-    def _check_balanced_quotes(cls, line: str):
-        match = re.split(r'(\'.*?\'|".*?"|.*?)', line)
-        groups = match.groups()
-        if not groups:
-            groups = [match.group()]
-        for group in groups:
-            if group[0] == '"' and group[-1] == '"':
-                continue
-            if group[0] == "'" and group[-1] == "'":
-                continue
+    @staticmethod
+    def parse(line: str) -> Pipeline:
+        _validate(line)
+        return _pipeline(_tokenize(_expand_vars(line)))
