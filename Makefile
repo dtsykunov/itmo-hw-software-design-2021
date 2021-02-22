@@ -1,4 +1,4 @@
-.PHONY: test run check
+.PHONY: test run check lint
 
 SRCDIRS=./cli ./tests
 test:
@@ -7,10 +7,13 @@ test:
 lint:
 	isort $(SRCDIRS)
 	black $(SRCDIRS)
-	# flake8 $(SRCDIRS)
-	# mypy $(SRCDIRS)
+	flake8 $(SRCDIRS) --max-line-length=88
+	mypy $(SRCDIRS)
 
 check: lint test
+
+install:
+	python -m pip install .
 
 run:
 	python -m cli
