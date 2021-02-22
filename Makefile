@@ -6,6 +6,7 @@ test:
 
 lint:
 	isort $(SRCDIRS)
+	python -m autoflake -r --in-place $(SRCDIRS)
 	black $(SRCDIRS)
 	flake8 $(SRCDIRS) --max-line-length=88
 	mypy $(SRCDIRS)
