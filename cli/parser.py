@@ -156,16 +156,6 @@ def _pipeline(tokens: list[str]) -> Pipeline:
     for pipe in pipes:
         if not pipe:
             raise SyntaxError("Empty pipe")
-        # nor: list[str] = []
-        # for i, token in enumerate(pipe[:-1]):
-        #     if token == " " == pipe[i + 1] == " ":
-        #         continue
-        #     if token == " " and pipe[i + 1] != " ":
-        #         nor.append(token)
-        #     if token != " ":
-        #         nor.append(token)
-        # nor.append(pipe[-1])
-        # noreps.append(nor)
         noreps.append(_del_conseq(pipe, lambda x: x == " "))
     # at this point, there're sequences of tokens with once whitespace token between
 
