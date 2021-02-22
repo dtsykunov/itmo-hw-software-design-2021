@@ -41,15 +41,31 @@ class ExecutorTest(ut.TestCase):
         with self.assertRaises(BlockingIOError):
             os.read(stderr[0], 1)
 
-    # I wanted to use "mock" package to assert the fact that it is builtin commands
-    # that are being called here, not external ones. "mock.patch", however, somehow messes
-    # with file descriptors just as I do with "redirect", making me unable to check the output.
-    # You will have to trust me that it is builtin commands that are actually called.
+    @mock.patch("cli.executor._exec_builtin")
+    def call_builtin(self, pipeline, mock):
+        # ignoring the output, checking that builtin command is called
+        with open(os.devnull, "w") as f:
+            Executor.execute(pipeline, stdout=f)
+        mock.assert_called()
+
+    def test_builtin(self):
+        # these commands are called as external processes
+        self.call_builtin(Pipeline([Command("cat", ["./tests/test.txt"])]))
+        self.call_builtin(Pipeline([Command("echo")]))
+        self.call_builtin(Pipeline([Command("pwd")]))
+        self.call_builtin(Pipeline([Command("wc", ["./tests/test.txt"])]))
+        # "exit" and "=" are executed as external processes if they don't appear at the end of the pipeline
+        # otherwise they're executed in the current shell process
+        self.call_builtin(Pipeline([Command("exit"), Command("./tests/test.sh")]))
+        self.call_builtin(
+            Pipeline([Command("=", ["a", "b"]), Command("./tests/test.sh")])
+        )
+
     def test_echo(self):
         hello = b"Hello, world!"
+        pipeline: Pipeline = Pipeline([Command("echo", [hello])])
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with redirect(stdin[0], stdout[1], stderr[1]):
-            pipeline: Pipeline = Pipeline([Command("echo", [hello])])
             Executor.execute(pipeline)
             os.write(stdin[1], hello)
         os.set_blocking(stdout[0], False)
@@ -62,10 +78,10 @@ class ExecutorTest(ut.TestCase):
         testfile = "./tests/test.txt"
         with open(testfile, "rb") as f:
             content = f.read()
+        pipeline: Pipeline = Pipeline([Command("cat", [testfile])])
 
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with redirect(stdin[0], stdout[1], stderr[1]):
-            pipeline: Pipeline = Pipeline([Command("cat", [testfile])])
             Executor.execute(pipeline)
             os.write(stdin[1], content)
         os.set_blocking(stdout[0], False)
