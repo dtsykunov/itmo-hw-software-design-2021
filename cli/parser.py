@@ -1,5 +1,3 @@
-import re
-
 from .common import Pipeline
 
 
@@ -25,7 +23,7 @@ def _check_balanced(raw: str) -> None:
         raise SyntaxError("Unbalanced quotes")
 
 
-def _expand_vars(raw: str) -> str:
+def _expand_vars(tokens: list[str]) -> list[str]:
     ...
 
 
@@ -41,4 +39,4 @@ class Parser:
     @staticmethod
     def parse(line: str) -> Pipeline:
         _validate(line)
-        return _pipeline(_tokenize(_expand_vars(line)))
+        return _pipeline(_expand_vars(_tokenize(line)))
