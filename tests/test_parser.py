@@ -2,7 +2,7 @@ import os
 from unittest import TestCase, mock, skip
 
 from cli.common import Command, Pipeline
-from cli.parser import Parser, _tokenize
+from cli.parser import Parser, _tokenize, _splitat, _del_conseq, _remove_quotes_if_needed
 
 
 @skip("testing subtests")
@@ -109,3 +109,20 @@ class TokenizeTest(TestCase):
         raw = "$a $b"
         with mock.patch.dict(os.environ, {"a": "ex", "b": "it"}, clear=True) as m:
             self.assertEqual(["ex", " ", "it"], _tokenize(raw))
+
+class HelpersTest(TestCase):
+    def test_splitat(self):
+        echo = [" ", " ", "echo", " ", "hello", " "]
+        cat =  [" ", "cat"]
+        pipe = echo + ["|"] + cat
+        self.assertEqual([echo, cat], _splitat(pipe, lambda x: x == '|'))
+
+    def test__del_conseq(self):
+        echo = [" ", " ", "echo", " ", "hello", " "]
+        self.assertEqual(echo[1:], _del_conseq(echo, lambda x: x == ' '))
+
+    def test_remove_quotes_if_needed(self):
+        a = "'heck'"
+        self.assertEqual(a[1:-1], _remove_quotes_if_needed(a))
+        self.assertEqual(a[1:-1], _remove_quotes_if_needed(a[1:-1]))
+        self.assertEqual("", _remove_quotes_if_needed(""))

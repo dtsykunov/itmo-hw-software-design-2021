@@ -2,8 +2,9 @@ import math
 import collections
 import itertools
 import os
+from typing import Callable, Any
 
-from .common import Pipeline
+from .common import Pipeline, Command
 
 
 # https://stackoverflow.com/a/1474848
@@ -108,22 +109,42 @@ def _tokenize(raw: str, inner=False) -> list[str]:
 
 
 def _remove_quotes_if_needed(token: str) -> str:
-    if token[0] == token[-1]:
-        if token[0] in ['"', "'"]:
-            return token[1:-1]
-    return token
+    return _remove_balanced(token, lambda x, y: x == y and x in ['"', "'"])
+
+
+def _remove_balanced(lst: list[Any], pred: Callable[[Any, Any], bool]) -> list[Any]:
+    if len(lst) < 2:
+        return lst
+    if pred(lst[0], lst[-1]):
+        return lst[1:-1]
+    return lst
 
 
 def _splitat(lst: list[Any], pred: Callable[[Any], bool]) -> list[list[Any]]:
     pipes = []
     last = 0
     i = len(lst)
-    for i, token in lst[:-1]:
+    for i, token in enumerate(lst):
         if pred(token):
             pipes.append(lst[last:i])
             last = i + 1
-    pipes.append(lst[last:i])
+    pipes.append(lst[last : i + 1])
     return pipes
+
+
+def _del_conseq(lst: list[Any], pred: Callable[[Any], bool]) -> list[Any]:
+    if not lst:
+        return lst
+    nor: list[str] = []
+    for i, token in enumerate(lst[:-1]):
+        if pred(token) and pred(lst[i + 1]):
+            continue
+        if pred(token) and not pred(lst[i + 1]):
+            nor.append(token)
+        if not pred(token):
+            nor.append(token)
+    nor.append(lst[-1])
+    return nor
 
 
 def _pipeline(tokens: list[str]) -> Pipeline:
@@ -135,16 +156,17 @@ def _pipeline(tokens: list[str]) -> Pipeline:
     for pipe in pipes:
         if not pipe:
             raise SyntaxError("Empty pipe")
-        nor: list[str] = []
-        for i, token in enumerate(pipe[:-1]):
-            if token == " " == pipe[i + 1] == " ":
-                continue
-            if token == " " and pipe[i + 1] != " ":
-                nor.append(token)
-            if token != " ":
-                nor.append(token)
-        nor.append(pipe[-1])
-        noreps.append(nor)
+        # nor: list[str] = []
+        # for i, token in enumerate(pipe[:-1]):
+        #     if token == " " == pipe[i + 1] == " ":
+        #         continue
+        #     if token == " " and pipe[i + 1] != " ":
+        #         nor.append(token)
+        #     if token != " ":
+        #         nor.append(token)
+        # nor.append(pipe[-1])
+        # noreps.append(nor)
+        noreps.append(_del_conseq(pipe, lambda x: x == " "))
     # at this point, there're sequences of tokens with once whitespace token between
 
     # delete whitespace at beginning and end
@@ -179,37 +201,18 @@ def _pipeline(tokens: list[str]) -> Pipeline:
     for pipe in wordsnoquotes:
         cmd_with_args: list[str] = []
         for i, cmd in enumerate(pipe):
-            cmd_with_args.append(sum(cmd, ""))
+            cmd_with_args.append("".join(cmd))
         pipeline.append(cmd_with_args)
 
-    # # concatenate consecutive strings and get rid of whitespace
-    # cated = []
-    # for pipe in pipes:
+    res: list[Command] = []
+    for p in pipeline:
+        assert len(p) > 0
+        if len(p) == 1:
+            res.append(Command(p[0]))
+        else:
+            res.append(Command(p[0], p[1:]))
 
-    #     cat = []
-    #     for i, token in enumerate(pipe[:-1]):
-    #         if token == " ":
-    #             continue
-    #         tok = _remove_quotes_if_needed(token)
-    #         if not cat:
-    #             cat.append(tok)
-    #             continue
-
-    #         if token == " " and pipe[i + 1] == " ":
-    #             continue
-    #         if token != " " and pipe[i + 1] != " ":
-    #             cat.append(cat.pop() + tok)
-    #         if token == " " and cat[-1] != " ":
-    #             cat.append(tok)
-    #         if token != " " and cat[-1] == " ":
-    #             cat.append(tok)
-    #     # get rid of whitespace after string concatenation
-    #     cat = [token for token in cat if token != " "]
-    #     if not cat:
-    #         raise SyntaxError("Empty pipe")
-    #     cated.append(cat)
-
-    # turn it into a Pipeline
+    return res
 
 
 class Parser:
