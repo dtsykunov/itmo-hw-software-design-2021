@@ -34,7 +34,6 @@ def _validate(line: str):
     _check_balanced(line)
 
 
-# # https://www.geeksforgeeks.org/check-for-balanced-parentheses-in-python/
 def _check_balanced(raw: str) -> None:
     """
     Check if all single and double quotes are balanced in the strings.
