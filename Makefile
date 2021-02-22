@@ -10,7 +10,7 @@ lint:
 	flake8 $(SRCDIRS) --max-line-length=88
 	mypy $(SRCDIRS)
 
-check: lint test
+ci: lint test
 
 install:
 	python -m pip install .
