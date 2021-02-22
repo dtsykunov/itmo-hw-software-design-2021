@@ -50,3 +50,14 @@ class ParserTest(TestCase):
         raw = "echo '" + s + "'"
         parsed = Parser.parse(raw)
         self.assertEqual(parsed, Pipeline([Command("echo", [s])]))
+
+    def test_unbalanced(self):
+        raw = "echo ' hello world"
+        with self.assertRaises(SyntaxError):
+            _ = Parser.parse(raw)
+
+    @mock.patch.dict(os.environ, {"a": "b"})
+    def test_quotes(self):
+        raw = "echo \"hello '$a' world\""
+        parsed = Parser.parse(raw)
+        self.assertEqual(parsed, Command("echo", ["hello 'b' world"]))
