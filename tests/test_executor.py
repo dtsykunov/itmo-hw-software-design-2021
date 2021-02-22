@@ -103,3 +103,19 @@ class ExecutorTest(ut.TestCase):
         with mock.patch("cli.executor.sys.exit") as m:
             Executor.execute(pipeline)
             m.assert_called()
+
+    def test_pipes(self):
+        hello = b"hello world"
+        pipeline: Pipeline = Pipeline(
+            [Command("echo", hello.decode("utf-8").split(" ")), Command("cat"), Command("cat")]
+        )
+
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with redirect(stdin[0], stdout[1], stderr[1]):
+            Executor.execute(pipeline)
+        os.set_blocking(stdout[0], False)
+        self.assertEqual(os.read(stdout[0], len(hello) + 1), hello + b"\n")
+        # Не очень понятное поведение. Почему в stderr $HOME?
+        # os.set_blocking(stderr[0], False)
+        # with self.assertRaises(BlockingIOError):
+        #     os.read(stderr[0], 1)
