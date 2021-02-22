@@ -38,6 +38,8 @@ class ExecutorTest(ut.TestCase):
         os.set_blocking(stdout[0], False)
         os.set_blocking(stderr[0], False)
         self.assertEqual(os.read(stdout[0], len(hello)), hello)
+        with self.assertRaises(BlockingIOError):
+            os.read(stderr[0], 1)
 
     # I wanted to use "mock" package to assert the fact that it is builtin commands
     # that are being called here, not external ones. "mock.patch", however, somehow messes
@@ -107,7 +109,11 @@ class ExecutorTest(ut.TestCase):
     def test_pipes(self):
         hello = b"hello world"
         pipeline: Pipeline = Pipeline(
-            [Command("echo", hello.decode("utf-8").split(" ")), Command("cat"), Command("cat")]
+            [
+                Command("echo", hello.decode("utf-8").split(" ")),
+                Command("cat"),
+                Command("cat"),
+            ]
         )
 
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
@@ -119,3 +125,14 @@ class ExecutorTest(ut.TestCase):
         # os.set_blocking(stderr[0], False)
         # with self.assertRaises(BlockingIOError):
         #     os.read(stderr[0], 1)
+
+    def test_eq(self):
+        pipeline: Pipeline = Pipeline(
+            [
+                Command("=", ["a", "b"]),
+            ]
+        )
+        with mock.patch.dict(os.environ, {}) as m:
+            Executor.execute(pipeline)
+            self.assertIn("a", m)
+            self.assertEqual("b", m["a"])
