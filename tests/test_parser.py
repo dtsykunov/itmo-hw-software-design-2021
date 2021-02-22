@@ -81,26 +81,24 @@ class TokenizeTest(TestCase):
 
     def test_squotes(self):
         raw = "'echo hello'"
-        self.assertEqual([raw[1:-1]], _tokenize(raw))
+        self.assertEqual([raw], _tokenize(raw))
 
     def test_dquotes(self):
         raw = '"echo hello"'
-        self.assertEqual([raw[1:-1]], _tokenize(raw))
+        self.assertEqual([raw], _tokenize(raw))
 
     def test_quotes_1(self):
         raw = ["echo", " ", '"echo hello"', " ", "|", " ", "cat"]
 
-        self.assertEqual(raw[0:2] + [raw[2][1:-1]] + raw[3:], _tokenize("".join(raw)))
+        self.assertEqual(raw, _tokenize("".join(raw)))
 
     def test_quotes_2(self):
         raw = ["echo", " ", '\'" " "\'']
-        res = raw[0:2] + [raw[2][1:-1]]
-        self.assertEqual(res, _tokenize("".join(raw)))
+        self.assertEqual(raw, _tokenize("".join(raw)))
 
     def test_quotes_3(self):
         raw = ["echo", " ", "\" ' ' ' \""]
-        res = raw[0:2] + [raw[2][1:-1]]
-        self.assertEqual(res, _tokenize("".join(raw)))
+        self.assertEqual(raw, _tokenize("".join(raw)))
 
     def test_expansion(self):
         raw = "$a$b"
