@@ -10,7 +10,8 @@ import sys
 from . import builtins
 from .common import Command, Pipeline
 
-_builtins = ["echo", "cat", "wc", "pwd", "exit"]
+# "exit" and "=" when executed in seperate process are NOOPT
+_builtins = ["echo", "cat", "wc", "pwd", "exit", "="]
 
 
 def _isbuiltin(cmd: Command) -> bool:
@@ -69,9 +70,8 @@ class Executor:
         if last.name == "exit":
             sys.exit(0)
             return
-        procs.append(_exec(last, stdin, sp.PIPE, sp.PIPE))
-        for proc in procs[:-1]:
-            proc.wait()
-        out, err = procs[-1].communicate()
-        stdout.write(out.decode('utf-8'))
-        stderr.write(err.decode('utf-8'))
+        elif last.name == "=":
+            os.environ[last.args[0]] = last.args[1]
+        else:
+            procs.append(_exec(last, stdin, stdout, stderr))
+        procs[-1].communicate()
