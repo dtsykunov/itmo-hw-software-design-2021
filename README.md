@@ -51,7 +51,7 @@ $ make run
 
 ## Architecture
 
-Cli shell consists of two parts:
+Cli shell consists of three parts:
 
 1. Parser
    Parses and syntactically validates the input string.
