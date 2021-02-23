@@ -2,9 +2,12 @@ import collections
 import itertools
 import os
 import shlex  # look at _check_balanced function
-from typing import Any, Callable
+from collections import Callable
+from typing import TypeVar
 
 from .common import Command, Pipeline
+
+T = TypeVar("T")
 
 
 # https://stackoverflow.com/a/1474848
@@ -97,7 +100,7 @@ def _remove_quotes_if_needed(token: str) -> str:
     return _remove_balanced(token, lambda x, y: x == y and x in ['"', "'"])
 
 
-def _remove_balanced(lst: list[Any], pred: Callable[[Any, Any], bool]) -> list[Any]:
+def _remove_balanced(lst: list[T], pred: Callable[[T, T], bool]) -> list[T]:
     if len(lst) < 2:
         return lst
     if pred(lst[0], lst[-1]):
@@ -105,7 +108,7 @@ def _remove_balanced(lst: list[Any], pred: Callable[[Any, Any], bool]) -> list[A
     return lst
 
 
-def _splitat(lst: list[Any], pred: Callable[[Any], bool]) -> list[list[Any]]:
+def _splitat(lst: list[T], pred: Callable[[T], bool]) -> list[list[T]]:
     pipes = []
     last = 0
     i = len(lst)
@@ -117,7 +120,7 @@ def _splitat(lst: list[Any], pred: Callable[[Any], bool]) -> list[list[Any]]:
     return pipes
 
 
-def _del_conseq(lst: list[Any], pred: Callable[[Any], bool]) -> list[Any]:
+def _del_conseq(lst: list[T], pred: Callable[[T], bool]) -> list[T]:
     if not lst:
         return lst
     nor: list[str] = []
