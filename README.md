@@ -1,7 +1,10 @@
 # itmo-hw-software-design-2021
+
 Homeworks for Software Design course
 
-# Running with Docker (takes a while to install dependencies)
+# Shell homework
+
+# # Running with Docker (takes a while to install dependencies)
 
 ```sh
 $ docker run -it $(docker build .)
@@ -9,7 +12,7 @@ $ docker run -it $(docker build .)
 /cli $
 ```
 
-# Running locally
+# # Running locally
 1. Install python 3.9.1
 
 2. Install dependencies
