@@ -52,6 +52,7 @@ def _nextspecialchar(string: str, start: int):
     next_p = end if (end := string.find("|", start)) != -1 else len(string)
     next_s = end if (end := string.find("'", start)) != -1 else len(string)
     next_d = end if (end := string.find('"', start)) != -1 else len(string)
+    next_d = end if (end := string.find("=", start)) != -1 else len(string)
     return min(next_sp, next_dl, next_p, next_s, next_d)
 
 
@@ -76,10 +77,7 @@ def _tokenize(raw: str, inner=False, expand=True) -> list[str]:
             _consume(iterator, end - i)
             continue
         # no quote will ever be processed below
-        if char == " ":
-            tokens.append(char)
-            continue
-        if char == "|":
+        if char in [" ", "|", "="]:
             tokens.append(char)
             continue
         end = _nextspecialchar(raw, i + 1)
@@ -172,6 +170,8 @@ def _pipeline(tokens: list[str]) -> Pipeline:
                 ww.append(_remove_quotes_if_needed(word))
             pp.append(ww)
         wordsnoquotes.append(pp)
+
+    # add split at =
 
     # concatenate sequences
     pipeline: list[list[str]] = []
