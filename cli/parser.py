@@ -46,25 +46,33 @@ def _check_balanced(raw: str) -> None:
         raise SyntaxError("Unbalanced quotes")
 
 
-def _tokenize(raw: str, inner=False) -> list[str]:
+def _nextspecialchar(string: str, start: int):
+    next_sp = end if (end := string.find(" ", start)) != -1 else len(string)
+    next_dl = end if (end := string.find("$", start)) != -1 else len(string)
+    next_p = end if (end := string.find("|", start)) != -1 else len(string)
+    next_s = end if (end := string.find("'", start)) != -1 else len(string)
+    next_d = end if (end := string.find('"', start)) != -1 else len(string)
+    return min(next_sp, next_dl, next_p, next_s, next_d)
+
+
+def _tokenize(raw: str, inner=False, expand=True) -> list[str]:
     # assume all quotes are balanced
     tokens = []
     iterator = iter(enumerate(raw))
     for i, char in iterator:
         if char in ['"', "'"]:
+            if inner:
+                tokens.append(char)
+                continue
+            end = raw.find(char, i + 1)
+            substr = raw[i + 1 : end if end != -1 else None]
             if char == "'":
-                if inner:
-                    tokens.append(char)
-                    continue
-                end = raw.find("'", i + 1)
-                word = "'" + raw[i + 1 : end if end != -1 else None] + "'"
+                word = "".join(_tokenize(substr, inner=True, expand=False))
             if char == '"':
-                end = raw.find('"', i + 1)
-                substr = raw[i + 1 : end if end != -1 else None]
                 # substring guaranteed not to have '"'
                 # recursion depth is at most 1
-                word = '"' + "".join(_tokenize(substr, inner=True)) + '"'
-            tokens.append(word)
+                word = "".join(_tokenize(substr, inner=True, expand=expand))
+            tokens.append(char + word + char)
             _consume(iterator, end - i)
             continue
         # no quote will ever be processed below
@@ -74,24 +82,16 @@ def _tokenize(raw: str, inner=False) -> list[str]:
         if char == "|":
             tokens.append(char)
             continue
-        next_sp = end if (end := raw.find(" ", i + 1)) != -1 else len(raw)
-        next_dl = end if (end := raw.find("$", i + 1)) != -1 else len(raw)
-        next_p = end if (end := raw.find("|", i + 1)) != -1 else len(raw)
-        end = min(next_sp, next_dl, next_p)
-        if char == "$":
+        end = _nextspecialchar(raw, i + 1)
+        if char == "$" and expand:
             word = raw[i + 1 : end]
-            if word:
-                tokens.append(os.environ.get(word, ""))
-            else:
-                tokens.append(char)
+            tokens.append(os.environ.get(word, ""))
         else:
             word = raw[i:end]
             tokens.append(word)
         _consume(iterator, end - i - 1)
-
     # delete empty strings
     tokens = list(filter(None, tokens))
-
     return tokens
 
 

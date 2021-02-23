@@ -67,7 +67,7 @@ class ParserTest(TestCase):
         raw = "echo \"hello '$a' world\""
         parsed = Parser.parse(raw)
         shouldbe = Pipeline([Command("echo", ["hello 'b' world"])])
-        self.assertEqual(shouldbe, parsed)
+        self.assertEqual(str(shouldbe), str(parsed))
 
     @mock.patch.dict(os.environ, {"a": "ex", "b": "it"})
     def test_quotes2(self):
@@ -116,6 +116,11 @@ class TokenizeTest(TestCase):
         raw = "$a $b"
         with mock.patch.dict(os.environ, {"a": "ex", "b": "it"}, clear=True):
             self.assertEqual(["ex", " ", "it"], _tokenize(raw))
+
+    def test_expansion3(self):
+        raw = "\"hello '$a' world\""
+        with mock.patch.dict(os.environ, {"a": "ex"}, clear=True):
+            self.assertEqual(["\"hello 'ex' world\""], _tokenize(raw))
 
 
 class HelpersTest(TestCase):
