@@ -76,6 +76,12 @@ class ParserTest(TestCase):
         shouldbe = Pipeline([Command("exit")])
         self.assertEqual(parsed, shouldbe)
 
+    def test_variable(self):
+        raw = "a=b"
+        shouldbe = Pipeline([Command("=", ["a", "b"])])
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(str(shouldbe), str(Parser.parse(raw)))
+
 
 class TokenizeTest(TestCase):
     def test_echo(self):
@@ -121,6 +127,11 @@ class TokenizeTest(TestCase):
         raw = "\"hello '$a' world\""
         with mock.patch.dict(os.environ, {"a": "ex"}, clear=True):
             self.assertEqual(["\"hello 'ex' world\""], _tokenize(raw))
+
+    def test_variable(self):
+        raw = "a=b"
+        with mock.patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(["a", "=", "b"], _tokenize(raw))
 
 
 class HelpersTest(TestCase):

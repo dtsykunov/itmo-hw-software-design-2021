@@ -140,7 +140,6 @@ def _pipeline(tokens: list[str]) -> Pipeline:
 
     # delete repeating spaces
     noreps: list[list[str]] = []
-    pipe: list[str]
     for pipe in pipes:
         if not pipe:
             raise SyntaxError("Empty pipe")
@@ -163,29 +162,25 @@ def _pipeline(tokens: list[str]) -> Pipeline:
         _splitat(pipe, lambda x: x == " ") for pipe in clean
     ]
 
+    # reorder ['a', '=', 'b'] -> ['=', 'a', 'b']
     # get rid of quotes
-    wordsnoquotes: list[list[list[str]]] = []
-    for pipe in pipeswords:
-        pp: list[list[str]] = []
-        for words in pipe:
-            ww: list[str] = []
-            for word in words:
-                ww.append(_remove_quotes_if_needed(word))
-            pp.append(ww)
-        wordsnoquotes.append(pp)
-
-    # add split at =
-
     # concatenate sequences
-    pipeline: list[list[str]] = []
-    for pipe in wordsnoquotes:
-        cmd_with_args: list[str] = []
+    commands: list[list[str]] = []
+    for pipe in pipeswords:
+        seqs: list[str] = []
         for i, cmd in enumerate(pipe):
-            cmd_with_args.append("".join(cmd))
-        pipeline.append(cmd_with_args)
+            if len(cmd) > 1 and cmd[1] == "=":
+                if len(cmd) == 3:
+                    seqs.append(cmd[1])
+                    seqs.append(_remove_quotes_if_needed(cmd[0]))
+                    seqs.append(_remove_quotes_if_needed(cmd[2]))
+                    continue
+                raise SyntaxError("Parse error at '='")
+            seqs.append("".join(_remove_quotes_if_needed(seq) for seq in cmd))
+        commands.append(seqs)
 
     res: list[Command] = []
-    for p in pipeline:
+    for p in commands:
         assert len(p) > 0
         if len(p) == 1:
             res.append(Command(p[0]))
