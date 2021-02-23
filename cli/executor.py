@@ -8,7 +8,7 @@ import sys
 from . import builtins
 from .common import Command, Pipeline
 
-_builtins = ["echo", "cat", "wc", "pwd", "exit", "="]
+_builtins = ["echo", "cat", "wc", "pwd", "exit", "=", "grep"]
 
 
 def _isbuiltin(cmd: Command) -> bool:

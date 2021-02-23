@@ -150,3 +150,61 @@ class ExecutorTest(ut.TestCase):
             Executor.execute(pipeline)
             self.assertIn("a", m)
             self.assertEqual("b", m["a"])
+
+
+class GrepTest(ut.TestCase):
+    def test_grep(self):
+        pipeline: Pipeline = Pipeline([Command("grep", ["test", "./tests/1.txt"])])
+        output = b"""This is a test line number one.
+This is another line that has the word test in it.\n"""
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with redirect(stdin[0], stdout[1], stderr[1]):
+            Executor.execute(pipeline)
+        os.set_blocking(stdout[0], False)
+        self.assertEqual(os.read(stdout[0], len(output)), output)
+
+    def test_insensitive(self):
+        pipeline: Pipeline = Pipeline(
+            [Command("grep", ["-i", "test", "./tests/1.txt"])]
+        )
+        output = b"""This is a test line number one.
+This is another line that has the word test in it.
+This one has capitalized Test.\n"""
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with redirect(stdin[0], stdout[1], stderr[1]):
+            Executor.execute(pipeline)
+        os.set_blocking(stdout[0], False)
+        self.assertEqual(os.read(stdout[0], len(output)), output)
+
+    def test_regex(self):
+        pipeline: Pipeline = Pipeline([Command("grep", [".*?", "./tests/1.txt"])])
+        with open("./tests/1.txt", "rb") as f:
+            output = f.read()
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with redirect(stdin[0], stdout[1], stderr[1]):
+            Executor.execute(pipeline)
+        os.set_blocking(stdout[0], False)
+        self.assertEqual(os.read(stdout[0], len(output)), output)
+
+    def test_literal_regex(self):
+        pipeline: Pipeline = Pipeline([Command("grep", ["-w", ".*?", "./tests/1.txt"])])
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with redirect(stdin[0], stdout[1], stderr[1]):
+            Executor.execute(pipeline)
+
+        os.set_blocking(stdout[0], False)
+        with self.assertRaises(BlockingIOError):
+            os.read(stdout[0], 1)
+
+    def test_after_context(self):
+        pipeline: Pipeline = Pipeline(
+            [Command("grep", ["-A", "2", "test", "./tests/1.txt"])]
+        )
+        output = b"""This is a test line number one.
+This is another line that has the word test in it.
+This one has capitalized Test.
+some dumb line\n"""
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with redirect(stdin[0], stdout[1], stderr[1]):
+            Executor.execute(pipeline)
+        self.assertEqual(os.read(stdout[0], len(output) + 1), output)
