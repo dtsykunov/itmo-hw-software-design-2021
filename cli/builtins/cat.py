@@ -3,5 +3,5 @@ import sys
 
 if __name__ == "__main__":
     for line in fileinput.input():
-        print(line)
+        print(line, end="")
     sys.exit(0)
