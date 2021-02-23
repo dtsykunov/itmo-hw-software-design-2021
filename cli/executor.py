@@ -58,6 +58,9 @@ class Executor:
     def execute(
         pipeline: Pipeline, stdin=sys.stdin, stdout=sys.stdout, stderr=sys.stderr
     ) -> None:
+        """
+        Executes a cli Pipeline, i.e. sequence of Commands, with desired side-effects.
+        """
         procs: list[sp.Popen] = []
         for cmd in pipeline.cmds[:-1]:
             p = _exec(cmd, stdin, sp.PIPE, sp.PIPE)

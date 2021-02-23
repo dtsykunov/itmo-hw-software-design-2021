@@ -175,7 +175,7 @@ def _pipeline(tokens: list[str]) -> Pipeline:
                     seqs.append(_remove_quotes_if_needed(cmd[0]))
                     seqs.append(_remove_quotes_if_needed(cmd[2]))
                     continue
-                raise SyntaxError("Parse error at '='")
+                raise SyntaxError("Invalid syntax '='")
             seqs.append("".join(_remove_quotes_if_needed(seq) for seq in cmd))
         commands.append(seqs)
 
