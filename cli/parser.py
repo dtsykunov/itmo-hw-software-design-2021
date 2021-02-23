@@ -23,10 +23,10 @@ def index_of_first(lst, pred):
     return -1
 
 
-def _listfind(l: list, value, start=0, stop=None):
+def _listfind(lst: list, value, start=0, stop=None):
     try:
-        return l.index(value, start, stop)
-    except:
+        return lst.index(value, start, stop)
+    except ValueError:
         return -1
 
 

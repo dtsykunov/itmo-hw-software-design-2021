@@ -70,7 +70,7 @@ class ParserTest(TestCase):
         self.assertEqual(shouldbe, parsed)
 
     @mock.patch.dict(os.environ, {"a": "ex", "b": "it"})
-    def test_quotes(self):
+    def test_quotes2(self):
         raw = "$a$b"
         parsed = Parser.parse(raw)
         shouldbe = Pipeline([Command("exit")])
@@ -109,12 +109,12 @@ class TokenizeTest(TestCase):
 
     def test_expansion(self):
         raw = "$a$b"
-        with mock.patch.dict(os.environ, {"a": "ex", "b": "it"}, clear=True) as m:
+        with mock.patch.dict(os.environ, {"a": "ex", "b": "it"}, clear=True):
             self.assertEqual(["ex", "it"], _tokenize(raw))
 
     def test_expansion2(self):
         raw = "$a $b"
-        with mock.patch.dict(os.environ, {"a": "ex", "b": "it"}, clear=True) as m:
+        with mock.patch.dict(os.environ, {"a": "ex", "b": "it"}, clear=True):
             self.assertEqual(["ex", " ", "it"], _tokenize(raw))
 
 
