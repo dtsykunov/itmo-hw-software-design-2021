@@ -1,6 +1,6 @@
 SRCDIRS=./cli ./tests
 
-.PHONY: test lint chec# k ci install run
+.PHONY: test lint check ci install run
 
 test:
 	python -m unittest discover ./tests
