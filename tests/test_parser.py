@@ -67,13 +67,14 @@ class ParserTest(TestCase):
         raw = "echo \"hello '$a' world\""
         parsed = Parser.parse(raw)
         shouldbe = Pipeline([Command("echo", ["hello 'b' world"])])
-        self.assertEqual(str(shouldbe), str(parsed))
+        self.assertEqual(shouldbe, parsed)
 
     @mock.patch.dict(os.environ, {"a": "ex", "b": "it"})
     def test_quotes(self):
         raw = "$a$b"
         parsed = Parser.parse(raw)
-        self.assertEqual(parsed, Command("exit"))
+        shouldbe = Pipeline([Command("exit")])
+        self.assertEqual(parsed, shouldbe)
 
 
 class TokenizeTest(TestCase):
