@@ -1,6 +1,7 @@
-from .parser import Lexer, Parser, CommandFactory
-from .clilexer import CliLexer
 from .clicommandfactory import CliCommandFactory
+from .clilexer import CliLexer
+from .common import Command
+from .parser import CommandFactory, Lexer, Parser
 
 
 class CliParser(Parser):
@@ -11,5 +12,5 @@ class CliParser(Parser):
         self.lexer: Lexer = CliLexer(env)
         self.commandFactory: CommandFactory = CliCommandFactory()
 
-    def parse(self, raw: str) -> Pipeline:
+    def parse(self, raw: str) -> list[Command]:
         return self.commandFactory.pipeline(self.lexer.tokenize(raw))

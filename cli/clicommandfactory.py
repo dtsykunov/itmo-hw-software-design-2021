@@ -1,6 +1,12 @@
 import os
+from collections import Callable
+from typing import TypeVar
+
+from .builtins import Cat, Echo, Eq, Exit, Pwd, Wc
 from .common import Command
 from .parser import CommandFactory
+
+T = TypeVar("T")
 
 
 class CliCommandFactory(CommandFactory):
@@ -74,30 +80,17 @@ def create_command(argv: list[str]) -> Command:
         args = []
 
     if name == "echo":
-        return Echo(
-            name,
-            args
-        )
+        return Echo(name, args)
     if name == "wc":
-        return Wc(
-            name,
-            args
-        )
+        return Wc(name, args)
     if name == "exit":
-        return Exit(
-            name,
-            args
-        )
+        return Exit(name, args)
     if name == "cat":
-        return Cat(
-            name,
-            args
-        )
+        return Cat(name, args)
     if name == "=":
-        return Eq(
-            name,
-            args
-        )
+        return Eq(name, args)
+    if name == "pwd":
+        return Pwd(name, args)
 
 
 def _remove_quotes_if_needed(token: str) -> str:

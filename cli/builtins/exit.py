@@ -1,4 +1,8 @@
-import sys
+from io import IOBase
 
-if __name__ == "__main__":
-    sys.exit(0)
+from ..common import Command
+
+
+class Exit(Command):
+    def execute(self, env: dict, stdin: IOBase, stdout: IOBase, stderr: IOBase) -> None:
+        ...

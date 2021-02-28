@@ -1,6 +1,7 @@
-import shlex
-import itertools
 import collections
+import itertools
+import shlex
+
 from .lexer import Lexer
 
 
@@ -30,11 +31,11 @@ class CliLexer(Lexer):
                 end = raw.find(char, i + 1)
                 substr = raw[i + 1 : end if end != -1 else None]
                 if char == "'":
-                    word = "".join(_tokenize(substr, inner=True, expand=False))
+                    word = "".join(self._tokenize(substr, inner=True, expand=False))
                 if char == '"':
                     # substring guaranteed not to have '"'
                     # recursion depth is at most 1
-                    word = "".join(_tokenize(substr, inner=True, expand=expand))
+                    word = "".join(self._tokenize(substr, inner=True, expand=expand))
                 tokens.append(char + word + char)
                 _consume(iterator, end - i)
                 continue

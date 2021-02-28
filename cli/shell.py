@@ -1,67 +1,8 @@
-import os
 import traceback
-from contextlib import contextmanager
-import sys
-from abc import ABC, abstractmethod
-from typing import FileIO
+from io import IOBase
 
-# from cli.parser import Parser
-from cli.executor import Executor
-
-
-
-class Parser:
-    def parse(self):
-        raise NotImplementedError("")
-
-
-class Command:
-    def __init__(self, name: str, args: list[str], infd: int = 0, outfd: int = 1, errfd: int = 2):
-        self.name = name
-        self.arsg = arsg
-        self.infd = infd
-        self.outfd = outfd
-        self.errfd = errfd
-
-    def execute(self, stdin, stdout, stderr) -> None:
-        raise NotImplementedError("")
-
-
-class Cat(Command):
-    def execute(self, env: dict, stdin: IOBase, stdout: IOBase, stderr: IOBase) -> None:
-        ...
-
-
-class Exit(Command):
-    def execute(self, env: dict, stdin: IOBase, stdout: IOBase, stderr: IOBase) -> None:
-        raise SystemExit()
-
-
-class Eq(Command):
-    def execute(self, env: dict, stdin: IOBase, stdout: IOBase, stderr: IOBase) -> None:
-        self.env[self.args[1]] = self.args[2]
-
-
-class CommandFactory:
-    def pipeline(self, tokens: list[str]) -> Pipeline:
-        raise NotImplementedError("")
-
-
-class CliCommandFactory(CommandFactory):
-    def pipeline(self, tokens: list[str]) -> Pipeline:
-        ...
-
-
-class CliParser(Parser):
-    def __init__(self, env: dict = None):
-        if not env:
-            env = dict()
-        self.env = env
-        self.lexer: Lexer = CliLexer(env)  # non trivial lexer
-        self.commandFactory: CommandFactory = CliCommandFactory()
-
-    def parse(self, raw: str) -> Pipeline:
-        return self.commandFactory.pipeline(self.lexer.tokenize(raw))
+from .common import Command
+from .parser import Parser
 
 
 class Shell:
@@ -72,14 +13,12 @@ class Shell:
         stderr: IOBase,
         env: dict,
         parser: Parser,
-        executor: Executor,
     ):
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
         self.env = env
         self.parser = parser
-        self.exector = executor
 
     def run(self) -> int:
         while True:
@@ -92,7 +31,7 @@ class Shell:
                 self._execute(pipeline)
             except (SystemExit, EOFError):
                 return 0
-            except Exception as e:
+            except Exception:
                 traceback.print_exc(file=self.stderr)
 
     def _execute(self, pipeline: list[Command]) -> None:
