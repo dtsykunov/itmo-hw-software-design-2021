@@ -9,7 +9,7 @@
 _Takes a while installing dependencies._
 
 ```sh
-$ docker run -it $(docker build .)
+$ docker run -it $(docker build -q .)
 
 /cli $
 ```
