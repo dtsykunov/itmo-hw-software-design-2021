@@ -1,12 +1,9 @@
-from unittest import TestCase, skip
+from unittest import TestCase
 
 from cli.builtins import Cat, Echo, Eq, Exit
 from cli.clicommandfactory import _del_conseq, _remove_quotes_if_needed, _splitat
 from cli.clilexer import CliLexer
 from cli.cliparser import CliParser
-from cli.common import Command
-
-from cli.builtins import cat, Cat, Echo, Eq, Exit
 
 
 class CliParserTest(TestCase):
@@ -128,10 +125,9 @@ class TokenizeTest(TestCase):
         lexer = CliLexer({"a": "ex"})
         self.assertEqual(["\"hello 'ex' world\""], lexer.tokenize(raw))
 
-    @skip("fixing")
     def test_variable(self):
         raw = "a=b"
-        self.assertEqual(["a", "=", "b"], lexer.tokenize(raw))
+        self.assertEqual(["a", "=", "b"], self.lexer.tokenize(raw))
 
 
 class HelpersTest(TestCase):
