@@ -1,4 +1,8 @@
-import os
+from io import IOBase
 
-if __name__ == "__main__":
-    print(os.getcwd())
+from ..common import Command
+
+
+class Pwd(Command):
+    def execute(self, env: dict, stdin: IOBase, stdout: IOBase, stderr: IOBase) -> None:
+        stdout.write(env.get("PWD", ""))

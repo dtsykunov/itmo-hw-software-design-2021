@@ -1,137 +1,133 @@
-import os
-from unittest import TestCase, mock
+from unittest import TestCase
 
-from cli.common import Command, Pipeline
-from cli.parser import (
-    Parser,
-    _check_balanced,
-    _del_conseq,
-    _remove_quotes_if_needed,
-    _splitat,
-    _tokenize,
-)
+from cli.builtins import Cat, Echo, Eq, Exit
+from cli.clicommandfactory import _del_conseq, _remove_quotes_if_needed, _splitat
+from cli.clilexer import CliLexer
+from cli.cliparser import CliParser
 
 
-class ParserTest(TestCase):
+class CliParserTest(TestCase):
     def test_echo(self):
         raw = "echo"
-        parsed: Pipeline = Parser.parse(raw)
-        self.assertEqual(parsed, Pipeline([Command("echo")]))
+        parsed = list(map(str, CliParser().parse(raw)))
+        expected = [str(Echo("echo", []))]
+        self.assertEqual(parsed, expected)
 
     def test_echo_with_args(self):
         raw = "echo hello world"
-        parsed: Pipeline = Parser.parse(raw)
+        parsed = list(map(str, CliParser().parse(raw)))
         split = raw.split(" ")
-        self.assertEqual(parsed, Pipeline([Command(split[0], split[1:])]))
+        expected = [str(Echo(split[0], split[1:]))]
+        self.assertEqual(parsed, expected)
 
     def test_pipe(self):
         hello = "echo hello world"
         cat = "cat"
         raw = hello + "|" + cat
-        parsed: Pipeline = Parser.parse(raw)
+        prs = CliParser().parse(raw)
+        parsed = list(map(str, prs))
         hello_split = hello.split(" ")
-        shouldbe = Pipeline([Command(hello_split[0], hello_split[1:]), Command(cat)])
+        shouldbe = [
+            str(Echo(hello_split[0], hello_split[1:], 0, prs[0].outfd, 2)),
+            str(Cat(cat, [], prs[1].infd, 1, 2)),
+        ]
         self.assertEqual(str(shouldbe), str(parsed))
 
     def test_single_quotes(self):
         raw = "echo 'hello world'"
-        parsed = Parser.parse(raw)
-        self.assertEqual(parsed, Pipeline([Command("echo", ["hello world"])]))
+        parsed = list(map(str, CliParser().parse(raw)))
+        self.assertEqual(parsed, [str(Echo("echo", ["hello world"]))])
 
     def test_double_quotes(self):
         raw = 'echo "hello world"'
-        parsed = Parser.parse(raw)
-        self.assertEqual(parsed, Pipeline([Command("echo", ["hello world"])]))
+        parsed = list(map(str, CliParser().parse(raw)))
+        self.assertEqual(parsed, [str(Echo("echo", ["hello world"]))])
 
-    @mock.patch.dict(os.environ, {"a": "b"})
     def test_expansion(self):
         var = "a"
         raw = 'echo "$' + var + '"'
-        parsed = Parser.parse(raw)
-        self.assertEqual(parsed, Pipeline([Command("echo", [os.environ["a"]])]))
+        parsed = list(map(str, CliParser({"a": "b"}).parse(raw)))
+        self.assertEqual(parsed, [str(Echo("echo", ["b"]))])
 
-    @mock.patch.dict(os.environ, {"a": "b"})
     def test_no_expansion(self):
         s = "$a"
         raw = "echo '" + s + "'"
-        parsed = Parser.parse(raw)
-        self.assertEqual(parsed, Pipeline([Command("echo", [s])]))
+        parsed = list(map(str, CliParser({"a": "b"}).parse(raw)))
+        self.assertEqual(parsed, [str(Echo("echo", [s]))])
 
     def test_unbalanced(self):
         raw = "echo ' hello world"
         with self.assertRaises(SyntaxError):
-            _ = Parser.parse(raw)
+            _ = CliParser().parse(raw)
 
-    @mock.patch.dict(os.environ, {"a": "b"})
     def test_quotes(self):
         raw = "echo \"hello '$a' world\""
-        parsed = Parser.parse(raw)
-        shouldbe = Pipeline([Command("echo", ["hello 'b' world"])])
+        parsed = list(map(str, CliParser({"a": "b"}).parse(raw)))
+        shouldbe = [str(Echo("echo", ["hello 'b' world"]))]
         self.assertEqual(str(shouldbe), str(parsed))
 
-    @mock.patch.dict(os.environ, {"a": "ex", "b": "it"})
     def test_quotes2(self):
         raw = "$a$b"
-        parsed = Parser.parse(raw)
-        shouldbe = Pipeline([Command("exit")])
+        parsed = list(map(str, CliParser({"a": "ex", "b": "it"}).parse(raw)))
+        shouldbe = [str(Exit("exit", []))]
         self.assertEqual(parsed, shouldbe)
 
     def test_variable(self):
         raw = "a=b"
-        shouldbe = Pipeline([Command("=", ["a", "b"])])
-        with mock.patch.dict(os.environ, {}, clear=True):
-            self.assertEqual(str(shouldbe), str(Parser.parse(raw)))
+        shouldbe = [str(Eq("=", ["a", "b"]))]
+        self.assertEqual(shouldbe, list(map(str, CliParser().parse(raw))))
 
 
 class TokenizeTest(TestCase):
+    lexer = CliLexer({})
+
     def test_echo(self):
         raw = "echo"
-        self.assertEqual([raw], _tokenize(raw))
+        self.assertEqual([raw], self.lexer.tokenize(raw))
 
     def test_args(self):
         raw = ["echo", " ", "hello"]
-        self.assertEqual(raw, _tokenize("".join(raw)))
+        self.assertEqual(raw, self.lexer.tokenize("".join(raw)))
 
     def test_squotes(self):
         raw = "'echo hello'"
-        self.assertEqual([raw], _tokenize(raw))
+        self.assertEqual([raw], self.lexer.tokenize(raw))
 
     def test_dquotes(self):
         raw = '"echo hello"'
-        self.assertEqual([raw], _tokenize(raw))
+        self.assertEqual([raw], self.lexer.tokenize(raw))
 
     def test_quotes_1(self):
         raw = ["echo", " ", '"echo hello"', " ", "|", " ", "cat"]
 
-        self.assertEqual(raw, _tokenize("".join(raw)))
+        self.assertEqual(raw, self.lexer.tokenize("".join(raw)))
 
     def test_quotes_2(self):
         raw = ["echo", " ", '\'" " "\'']
-        self.assertEqual(raw, _tokenize("".join(raw)))
+        self.assertEqual(raw, self.lexer.tokenize("".join(raw)))
 
     def test_quotes_3(self):
         raw = ["echo", " ", "\" ' ' ' \""]
-        self.assertEqual(raw, _tokenize("".join(raw)))
+        self.assertEqual(raw, self.lexer.tokenize("".join(raw)))
 
     def test_expansion(self):
         raw = "$a$b"
-        with mock.patch.dict(os.environ, {"a": "ex", "b": "it"}, clear=True):
-            self.assertEqual(["ex", "it"], _tokenize(raw))
+        lexer = CliLexer({"a": "ex", "b": "it"})
+        self.assertEqual(["ex", "it"], lexer.tokenize(raw))
 
     def test_expansion2(self):
         raw = "$a $b"
-        with mock.patch.dict(os.environ, {"a": "ex", "b": "it"}, clear=True):
-            self.assertEqual(["ex", " ", "it"], _tokenize(raw))
+        lexer = CliLexer({"a": "ex", "b": "it"})
+        self.assertEqual(["ex", " ", "it"], lexer.tokenize(raw))
 
     def test_expansion3(self):
         raw = "\"hello '$a' world\""
-        with mock.patch.dict(os.environ, {"a": "ex"}, clear=True):
-            self.assertEqual(["\"hello 'ex' world\""], _tokenize(raw))
+        lexer = CliLexer({"a": "ex"})
+        self.assertEqual(["\"hello 'ex' world\""], lexer.tokenize(raw))
 
     def test_variable(self):
         raw = "a=b"
-        with mock.patch.dict(os.environ, {}, clear=True):
-            self.assertEqual(["a", "=", "b"], _tokenize(raw))
+        self.assertEqual(["a", "=", "b"], self.lexer.tokenize(raw))
 
 
 class HelpersTest(TestCase):
@@ -150,10 +146,3 @@ class HelpersTest(TestCase):
         self.assertEqual(a[1:-1], _remove_quotes_if_needed(a))
         self.assertEqual(a[1:-1], _remove_quotes_if_needed(a[1:-1]))
         self.assertEqual("", _remove_quotes_if_needed(""))
-
-    def test_check_balanced(self):
-        raw = '""'
-        self.assertIsNone(_check_balanced(raw))
-        raw1 = '"""'
-        with self.assertRaises(SyntaxError):
-            _check_balanced(raw1)

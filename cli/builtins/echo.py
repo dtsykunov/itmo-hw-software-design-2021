@@ -1,4 +1,8 @@
-import sys
+from io import IOBase
 
-if __name__ == "__main__":
-    print(*sys.argv[1:])
+from ..common import Command
+
+
+class Echo(Command):
+    def execute(self, env: dict, stdin: IOBase, stdout: IOBase, stderr: IOBase) -> None:
+        stdout.write(" ".join(self.args) + "\n")

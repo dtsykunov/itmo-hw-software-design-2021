@@ -1,27 +1,29 @@
+import subprocess as sp
+from io import IOBase
+
+
 class Command:
-    def __init__(self, name: str, args: list[str] = None):
-        if args is None:
-            args = []
+    def __init__(
+        self, name: str, args: list[str], infd: int = 0, outfd: int = 1, errfd: int = 2
+    ):
         self.name = name
         self.args = args
+        self.infd = infd
+        self.outfd = outfd
+        self.errfd = errfd
 
-    def __eq__(self, other):
-        if isinstance(other, Command):
-            return self.name == other.name and self.args == other.args
-        return False
-
-    def __str__(self):
-        return "Command(" + str(self.name) + ", " + str(self.args) + ")"
-
-
-class Pipeline:
-    def __init__(self, cmds: list[Command]):
-        self.cmds = cmds
-
-    def __eq__(self, other):
-        if isinstance(other, Pipeline):
-            return self.cmds == other.cmds
-        return False
+    def execute(self, env: dict, stdin: IOBase, stdout: IOBase, stderr: IOBase) -> None:
+        process = sp.Popen(
+            [self.name] + self.args,
+            stdin=stdin,
+            stdout=stdout,
+            stderr=stderr,
+            env=env,
+        )
+        process.wait()
 
     def __str__(self):
-        return "Pipeline([" + ", ".join(str(cmd) for cmd in self.cmds) + "])"
+        return (
+            f"{self.__class__.__name__}"
+            "({self.name},{self.args},{self.infd},{self.outfd},{self.errfd})"
+        )
