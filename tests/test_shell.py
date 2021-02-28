@@ -51,7 +51,7 @@ class ExecutorTest(ut.TestCase):
             sh = Shell(sin, sout, serr, {}, None)
             sh._execute(pipeline)
         with open(stdout[0], "r") as res:
-            self.assertEqual(res.read(), hello)
+            self.assertEqual(res.read(), hello + "\n")
 
     def test_cat(self):
         testfile = "./tests/test.txt"
@@ -125,7 +125,7 @@ class ExecutorTest(ut.TestCase):
             sh = Shell(sin, sout, serr, {}, None)
             sh._execute(pipeline)
         with open(stdout[0], "r") as res:
-            self.assertEqual(hello, res.read())
+            self.assertEqual(hello + "\n", res.read())
 
     def test_eq(self):
         pipeline = [Eq("=", ["a", "b"])]

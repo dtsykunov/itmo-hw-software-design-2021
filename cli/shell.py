@@ -23,8 +23,9 @@ class Shell:
     def run(self) -> int:
         while True:
             try:
-                self.stdout.write("$ ")
-                raw: str = self.stdin.readline()
+                self.stdout.write(" $ ")
+                self.stdout.flush()
+                raw: str = self.stdin.readline()[:-1]
                 if not raw:
                     continue
                 pipeline: list[Command] = self.parser.parse(raw)
