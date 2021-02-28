@@ -25,9 +25,10 @@ class Shell:
             try:
                 self.stdout.write(" $ ")
                 self.stdout.flush()
-                raw: str = self.stdin.readline()[:-1]
+                raw: str = self.stdin.readline()
                 if not raw:
-                    continue
+                    raise EOFError
+                raw = raw[:-1]
                 pipeline: list[Command] = self.parser.parse(raw)
                 self._execute(pipeline)
             except (SystemExit, EOFError):
