@@ -2,11 +2,10 @@ import os
 import sys
 import unittest as ut
 from contextlib import contextmanager
-from unittest import mock, skip
 
+from cli.builtins import Cat, Echo, Eq, Exit, Pwd, Wc
 from cli.common import Command
 from cli.shell import Shell
-from cli.builtins import Echo, Cat, Wc, Pwd, Exit, Eq
 
 
 # https://stackoverflow.com/questions/47066063/how-to-capture-python-subprocess-stdout-in-unittest

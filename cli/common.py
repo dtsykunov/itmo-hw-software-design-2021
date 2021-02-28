@@ -1,5 +1,5 @@
-from io import IOBase
 import subprocess as sp
+from io import IOBase
 
 
 class Command:
@@ -12,8 +12,6 @@ class Command:
         self.outfd = outfd
         self.errfd = errfd
 
-    # def execute(self, stdin, stdout, stderr) -> None:
-    #     raise NotImplementedError("")
     def execute(self, env: dict, stdin: IOBase, stdout: IOBase, stderr: IOBase) -> None:
         process = sp.Popen(
             [self.name] + self.args,
@@ -25,7 +23,7 @@ class Command:
         process.wait()
 
     def __str__(self):
-        return f"{self.__class__.__name__}({self.name},{self.args},{self.infd},{self.outfd},{self.errfd})"
-
-
-# class External(Command):
+        return (
+            f"{self.__class__.__name__}"
+            "({self.name},{self.args},{self.infd},{self.outfd},{self.errfd})"
+        )
