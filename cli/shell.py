@@ -38,19 +38,19 @@ class Shell:
         if not pipeline:
             return
         if len(pipeline) == 1:
-            pipeline[0].execute(self.stdin, self.stdout, self.stderr)
+            pipeline[0].execute(self.env, self.stdin, self.stdout, self.stderr)
             return
 
         cmd = pipeline[0]
-        with open(cmd.fdout, "w") as stdout, open(cmd.fderr, "w") as stderr:
-            cmd.execute(self.stdin, stdout, stderr)
+        with open(cmd.outfd, "w") as stdout, open(cmd.errfd, "w") as stderr:
+            cmd.execute(self.env, self.stdin, stdout, stderr)
 
         for command in pipeline[1:-1]:
-            with open(cmd.fdin, "r") as stdin, open(cmd.fdout, "w") as stdout, open(
-                cmd.fderr, "w"
-            ) as stderr:
-                command.execute(stdin, stdout, stderr)
+            with open(command.infd, "r") as stdin, open(
+                command.outfd, "w"
+            ) as stdout, open(command.errfd, "w") as stderr:
+                command.execute(self.env, stdin, stdout, stderr)
 
         last: Command = pipeline[-1]
-        with open(last.fdin, "r") as stdin:
-            last.execute(stdin, self.stdout, self.stderr)
+        with open(last.infd, "r") as stdin:
+            last.execute(self.env, stdin, self.stdout, self.stderr)
