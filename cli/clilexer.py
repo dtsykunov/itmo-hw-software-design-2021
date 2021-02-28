@@ -2,7 +2,7 @@ import collections
 import itertools
 import shlex
 
-from .lexer import Lexer
+from .parser import Lexer
 
 
 class CliLexer(Lexer):

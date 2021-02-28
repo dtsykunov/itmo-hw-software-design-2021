@@ -91,6 +91,7 @@ def create_command(argv: list[str]) -> Command:
         return Eq(name, args)
     if name == "pwd":
         return Pwd(name, args)
+    return Command(name, args)
 
 
 def _remove_quotes_if_needed(token: str) -> str:

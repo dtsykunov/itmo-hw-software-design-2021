@@ -12,4 +12,4 @@ class Command:
         raise NotImplementedError("")
 
     def __str__(self):
-        return f"Command({self.name},{self.args},{self.infd},{self.outfd},{self.errfd})"
+        return f"{self.__class__.__name__}({self.name},{self.args},{self.infd},{self.outfd},{self.errfd})"
