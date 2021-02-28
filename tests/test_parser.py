@@ -77,56 +77,56 @@ class CliParserTest(TestCase):
         self.assertEqual(shouldbe, list(map(str,CliParser().parse(raw))))
 
 
-@skip("fixing")
 class TokenizeTest(TestCase):
+    lexer = CliLexer({})
     def test_echo(self):
         raw = "echo"
-        self.assertEqual([raw], _tokenize(raw))
+        self.assertEqual([raw], self.lexer.tokenize(raw))
 
     def test_args(self):
         raw = ["echo", " ", "hello"]
-        self.assertEqual(raw, _tokenize("".join(raw)))
+        self.assertEqual(raw, self.lexer.tokenize("".join(raw)))
 
     def test_squotes(self):
         raw = "'echo hello'"
-        self.assertEqual([raw], _tokenize(raw))
+        self.assertEqual([raw], self.lexer.tokenize(raw))
 
     def test_dquotes(self):
         raw = '"echo hello"'
-        self.assertEqual([raw], _tokenize(raw))
+        self.assertEqual([raw], self.lexer.tokenize(raw))
 
     def test_quotes_1(self):
         raw = ["echo", " ", '"echo hello"', " ", "|", " ", "cat"]
 
-        self.assertEqual(raw, _tokenize("".join(raw)))
+        self.assertEqual(raw, self.lexer.tokenize("".join(raw)))
 
     def test_quotes_2(self):
         raw = ["echo", " ", '\'" " "\'']
-        self.assertEqual(raw, _tokenize("".join(raw)))
+        self.assertEqual(raw, self.lexer.tokenize("".join(raw)))
 
     def test_quotes_3(self):
         raw = ["echo", " ", "\" ' ' ' \""]
-        self.assertEqual(raw, _tokenize("".join(raw)))
+        self.assertEqual(raw, self.lexer.tokenize("".join(raw)))
 
     def test_expansion(self):
         raw = "$a$b"
-        with mock.patch.dict(os.environ, {"a": "ex", "b": "it"}, clear=True):
-            self.assertEqual(["ex", "it"], _tokenize(raw))
+        lexer = CliLexer({"a": "ex", "b": "it"})
+        self.assertEqual(["ex", "it"], lexer.tokenize(raw))
 
     def test_expansion2(self):
         raw = "$a $b"
-        with mock.patch.dict(os.environ, {"a": "ex", "b": "it"}, clear=True):
-            self.assertEqual(["ex", " ", "it"], _tokenize(raw))
+        lexer = CliLexer({"a": "ex", "b": "it"})
+        self.assertEqual(["ex", " ", "it"], lexer.tokenize(raw))
 
     def test_expansion3(self):
         raw = "\"hello '$a' world\""
-        with mock.patch.dict(os.environ, {"a": "ex"}, clear=True):
-            self.assertEqual(["\"hello 'ex' world\""], _tokenize(raw))
+        lexer = CliLexer({"a": "ex"})
+        self.assertEqual(["\"hello 'ex' world\""], lexer.tokenize(raw))
 
+    @skip("fixing")
     def test_variable(self):
         raw = "a=b"
-        with mock.patch.dict(os.environ, {}, clear=True):
-            self.assertEqual(["a", "=", "b"], _tokenize(raw))
+        self.assertEqual(["a", "=", "b"], lexer.tokenize(raw))
 
 
 @skip("fixing")
