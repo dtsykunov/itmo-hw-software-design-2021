@@ -1,12 +1,12 @@
-import os
-from unittest import TestCase, mock, skip
+from unittest import TestCase, skip
 
-from cli.cliparser import CliParser
-from cli.clilexer import CliLexer
+from cli.builtins import Cat, Echo, Eq, Exit
 from cli.clicommandfactory import _del_conseq, _remove_quotes_if_needed, _splitat
+from cli.clilexer import CliLexer
+from cli.cliparser import CliParser
 from cli.common import Command
 
-from cli.builtins import Echo, Cat, Exit, Eq
+from cli.builtins import cat, Cat, Echo, Eq, Exit
 
 
 class CliParserTest(TestCase):
@@ -27,9 +27,13 @@ class CliParserTest(TestCase):
         hello = "echo hello world"
         cat = "cat"
         raw = hello + "|" + cat
-        parsed = list(map(str, CliParser().parse(raw)))
+        prs = CliParser().parse(raw)
+        parsed = list(map(str, prs))
         hello_split = hello.split(" ")
-        shouldbe = [str(Echo(hello_split[0], hello_split[1:])), str(Cat(cat, []))]
+        shouldbe = [
+            str(Echo(hello_split[0], hello_split[1:], 0, prs[0].outfd, 2)),
+            str(Cat(cat, [], prs[1].infd, 1, 2)),
+        ]
         self.assertEqual(str(shouldbe), str(parsed))
 
     def test_single_quotes(self):
@@ -74,11 +78,12 @@ class CliParserTest(TestCase):
     def test_variable(self):
         raw = "a=b"
         shouldbe = [str(Eq("=", ["a", "b"]))]
-        self.assertEqual(shouldbe, list(map(str,CliParser().parse(raw))))
+        self.assertEqual(shouldbe, list(map(str, CliParser().parse(raw))))
 
 
 class TokenizeTest(TestCase):
     lexer = CliLexer({})
+
     def test_echo(self):
         raw = "echo"
         self.assertEqual([raw], self.lexer.tokenize(raw))
@@ -129,7 +134,6 @@ class TokenizeTest(TestCase):
         self.assertEqual(["a", "=", "b"], lexer.tokenize(raw))
 
 
-@skip("fixing")
 class HelpersTest(TestCase):
     def test_splitat(self):
         echo = [" ", " ", "echo", " ", "hello", " "]
@@ -146,10 +150,3 @@ class HelpersTest(TestCase):
         self.assertEqual(a[1:-1], _remove_quotes_if_needed(a))
         self.assertEqual(a[1:-1], _remove_quotes_if_needed(a[1:-1]))
         self.assertEqual("", _remove_quotes_if_needed(""))
-
-    def test_check_balanced(self):
-        raw = '""'
-        self.assertIsNone(_check_balanced(raw))
-        raw1 = '"""'
-        with self.assertRaises(SyntaxError):
-            _check_balanced(raw1)

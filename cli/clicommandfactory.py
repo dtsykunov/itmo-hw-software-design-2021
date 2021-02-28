@@ -65,9 +65,8 @@ class CliCommandFactory(CommandFactory):
         # pipeline file descriptors
         for pr, nxt in zip(res[:-1], res[1:]):
             fds = os.pipe()
-            nxt.fdin = fds[0]
-            pr.fdout = fds[1]
-
+            nxt.infd = fds[0]
+            pr.outfd = fds[1]
         return res
 
 
