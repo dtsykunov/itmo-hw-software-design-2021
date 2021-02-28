@@ -6,6 +6,11 @@ from .executor import Executor
 from .parser import Parser
 
 if __name__ == "__main__":
+    sh: Shell = Shell(
+        sys.stdin, sys.stdout, sys.stderr, env=os.environ, parser=CliParser
+    )
+    sh.run()
+
     while True:
         try:
             print(os.getcwd(), "$ ", end="")

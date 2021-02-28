@@ -4,6 +4,9 @@ class Command:
             args = []
         self.name = name
         self.args = args
+        self.fdin = 0
+        self.fdout = 1
+        self.fdout = 2
 
     def __eq__(self, other):
         if isinstance(other, Command):
