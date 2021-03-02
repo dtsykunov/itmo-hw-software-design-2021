@@ -13,4 +13,13 @@ class CliParser(Parser):
         self.commandFactory: CommandFactory = CliCommandFactory()
 
     def parse(self, raw: str) -> list[Command]:
+        """
+        Examples
+        ----------
+        >>> from cli.lexer import CliParser
+        >>> parser = CliParser({"a": "wo", "b": "rld"})
+        >>> parser.parse("echo hello $a$b")
+        [Echo('echo', ['hello', 'world'], 0, 1, 2)]
+
+        """
         return self.commandFactory.pipeline(self.lexer.tokenize(raw))

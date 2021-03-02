@@ -1,6 +1,5 @@
 import collections
 import itertools
-import shlex
 
 from .parser import Lexer
 
@@ -10,13 +9,32 @@ class CliLexer(Lexer):
         self.env = env
 
     def tokenize(self, raw: str) -> list[str]:
+        """
+        Examples
+        ----------
+        >>> from cli.lexer import CliLexer
+        >>> lexer = CliLexer({"a": "wo", "b": "rld"})
+        >>> lexer.tokenize("echo hello $a$b")
+        ['echo', ' ', 'hello', ' ', 'wo', 'rld']
+
+        """
         self._validate(raw)
         return self._tokenize(raw)
 
     def _validate(self, raw: str):
+        copy = []
+        for char in raw:
+            if char in ['"', "'"]:
+                copy.append(char)
+        quotes = "".join(copy)
+
+        itr = iter(quotes)
         try:
-            shlex.split(raw)
-        except ValueError:
+            for char in itr:
+                c = next(itr)
+                while c != char:
+                    c = next(itr)
+        except StopIteration:
             raise SyntaxError("Unbalanced quotes")
 
     def _tokenize(self, raw: str, inner=False, expand=True) -> list[str]:

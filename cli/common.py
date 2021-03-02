@@ -25,5 +25,8 @@ class Command:
     def __str__(self):
         return (
             f"{self.__class__.__name__}"
-            "({self.name},{self.args},{self.infd},{self.outfd},{self.errfd})"
+            f"('{self.name}', {self.args}, {self.infd}, {self.outfd}, {self.errfd})"
         )
+
+    def __repr__(self):
+        return self.__str__()
