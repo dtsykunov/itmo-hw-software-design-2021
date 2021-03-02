@@ -49,47 +49,29 @@ $ make install
 $ make run
 ```
 
-## Architecture
 
-Cli shell consists of three parts:
+## Supported commands
 
-1. Parser
-   Parses and syntactically validates the input string.
-2. Executor
-   Executes the parsed input for desired side-effects.
-3. Interlayer (i.e. "Common")
-   Specifies data structures used by both Parser and Executor.
+### cat [file ...]
+
+    Concatenate contents of in each input file, or stdin.
+
+### wc [file ...]
+
+    Print number of words, lines and characters in each input file, or stdin.
+    
+### echo [arg ...]
+
+   Print arguments with trailing '\n'. 
    
+### pwd
+    
+    Print current working directory.
 
-### Project structure
+### a=b
+    
+    Add variable to environment
+    
+### exit
 
-```sh
-~/sd-cli$ tree .
-.
-├── Dockerfile 
-├── Makefile
-├── README.md
-├── cli                   # application source code directory
-│   ├── __init__.py
-│   ├── __main__.py       # entrypoint
-│   ├── builtins          # source code directory for builtin commands
-│   │   ├── =.py
-│   │   ├── __init__.py
-│   │   ├── cat.py
-│   │   ├── echo.py
-│   │   ├── exit.py
-│   │   ├── pwd.py
-│   │   └── wc.py
-│   ├── common.py         # interlayer
-│   ├── executor.py 
-│   └── parser.py
-├── requirements.txt
-├── setup.py
-└── tests
-    ├── test.sh
-    ├── test.txt
-    ├── test_executor.py
-    ├── test_parser.py
-    └── test_sanity.py
-```
-
+    Exit shell
