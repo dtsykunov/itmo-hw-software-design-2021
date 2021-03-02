@@ -5,7 +5,7 @@ import regex as re
 
 from ..common import Command
 
-_argparser = ap.ArgumentParser()
+_argparser = ap.ArgumentParser(prog="grep")
 _argparser.add_argument(
     "pattern",
     metavar="PATTERN",
