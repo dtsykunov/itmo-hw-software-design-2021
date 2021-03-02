@@ -9,6 +9,15 @@ class CliLexer(Lexer):
         self.env = env
 
     def tokenize(self, raw: str) -> list[str]:
+        """
+        Examples
+        ----------
+        >>> from cli.lexer import CliLexer
+        >>> lexer = CliLexer({"a": "wo", "b": "rld"})
+        >>> lexer.tokenize("echo hello $a$b")
+        ['echo', ' ', 'hello', ' ', 'wo', 'rld']
+
+        """
         self._validate(raw)
         return self._tokenize(raw)
 

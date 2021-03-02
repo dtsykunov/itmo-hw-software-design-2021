@@ -11,6 +11,15 @@ T = TypeVar("T")
 
 class CliCommandFactory(CommandFactory):
     def pipeline(self, tokens: list[str]) -> list[Command]:
+        """
+        Examples
+        ----------
+        >>> from cli.clicommandfactory import CliCommandFactory
+        >>> factory = CliCommandFactory
+        >>> factory.pipeline(['echo', ' ', 'hello', ' ', 'wo', 'rld'])
+        [Echo('echo', ['hello', 'world'], 0, 1, 2)]
+
+        """
         pipes: list[list[str]] = _splitat(tokens, lambda x: x == "|")
 
         # delete repeating spaces
