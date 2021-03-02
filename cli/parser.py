@@ -41,6 +41,7 @@ class CommandFactory:
 
 
 class Parser:
+    def parse(self, raw: str) -> list[Command]:
         """
         Parse a string into a list of commands.
 
@@ -54,5 +55,4 @@ class Parser:
         out : list[Command]
             List of Commands.
         """
-    def parse(self, raw: str) -> list[Command]:
         raise NotImplementedError("")
