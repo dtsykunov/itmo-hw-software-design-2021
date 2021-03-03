@@ -2,7 +2,7 @@ import os
 from collections import Callable
 from typing import TypeVar
 
-from .builtins import Cat, Echo, Eq, Exit, Pwd, Wc
+from .builtins import Cat, Echo, Eq, Exit, Grep, Pwd, Wc
 from .common import Command
 from .parser import CommandFactory
 
@@ -99,6 +99,8 @@ def create_command(argv: list[str]) -> Command:
         return Eq(name, args)
     if name == "pwd":
         return Pwd(name, args)
+    if name == "grep":
+        return Grep(name, args)
     return Command(name, args)
 
 

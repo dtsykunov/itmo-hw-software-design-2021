@@ -64,6 +64,10 @@ $ make run
 
    Print arguments with trailing '\n'. 
    
+### grep [-h] [-i] [-w] [-A AFTER] PATTERN [FILE ...]
+
+    Search for pattern in each input file, or stdin.
+   
 ### pwd
     
     Print current working directory.

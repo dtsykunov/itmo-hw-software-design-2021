@@ -3,7 +3,7 @@ import sys
 import unittest as ut
 from contextlib import contextmanager
 
-from cli.builtins import Cat, Echo, Eq, Exit, Pwd, Wc
+from cli.builtins import Cat, Echo, Eq, Exit, Grep, Pwd, Wc
 from cli.common import Command
 from cli.shell import Shell
 
@@ -138,3 +138,89 @@ class ExecutorTest(ut.TestCase):
             sh._execute(pipeline)
             self.assertIn("a", env)
             self.assertEqual("b", env["a"])
+
+
+class GrepTest(ut.TestCase):
+    def test_grep(self):
+        pipeline = [Grep("grep", ["test", "./tests/1.txt"])]
+        output = """This is a test line number one.
+This is another line that has the word test in it.\n"""
+
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
+            stderr[1], "w"
+        ) as serr:
+            sh = Shell(sin, sout, serr, None, None)
+            sh._execute(pipeline)
+        with open(stdout[0], "r") as res:
+            self.assertEqual(output, res.read())
+
+    def test_insensitive(self):
+        pipeline = [Grep("grep", ["-i", "test", "./tests/1.txt"])]
+        output = """This is a test line number one.
+This is another line that has the word test in it.
+This one has capitalized Test.\n"""
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
+            stderr[1], "w"
+        ) as serr:
+            sh = Shell(sin, sout, serr, None, None)
+            sh._execute(pipeline)
+        with open(stdout[0], "r") as res:
+            self.assertEqual(output, res.read())
+
+    def test_regex(self):
+        pipeline = [Grep("grep", [".*?", "./tests/1.txt"])]
+        with open("./tests/1.txt", "r") as f:
+            output = f.read()
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
+            stderr[1], "w"
+        ) as serr:
+            sh = Shell(sin, sout, serr, None, None)
+            sh._execute(pipeline)
+        with open(stdout[0], "r") as res:
+            self.assertEqual(output, res.read())
+
+    def test_literal_regex(self):
+        pipeline = [Grep("grep", ["-w", ".*?", "./tests/1.txt"])]
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
+            stderr[1], "w"
+        ) as serr:
+            sh = Shell(sin, sout, serr, None, None)
+            sh._execute(pipeline)
+        with open(stdout[0], "r") as res:
+            self.assertEqual("", res.read())
+
+    def test_after_context(self):
+        pipeline = [Grep("grep", ["-A", "2", "test", "./tests/1.txt"])]
+        output = """This is a test line number one.
+This is another line that has the word test in it.
+This one has capitalized Test.
+some dumb line\n"""
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
+            stderr[1], "w"
+        ) as serr:
+            sh = Shell(sin, sout, serr, None, None)
+            sh._execute(pipeline)
+        with open(stdout[0], "r") as res:
+            self.assertEqual(output, res.read())
+
+    def test_from_stdin(self):
+        pipe1, pipe2 = os.pipe(), os.pipe()
+        pipeline = [
+            Cat("cat", ["./tests/1.txt"], outfd=pipe1[1], errfd=pipe2[1]),
+            Grep("grep", ["test"], infd=pipe1[0]),
+        ]
+        output = """This is a test line number one.
+This is another line that has the word test in it.\n"""
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
+            stderr[1], "w"
+        ) as serr:
+            sh = Shell(sin, sout, serr, None, None)
+            sh._execute(pipeline)
+        with open(stdout[0], "r") as res:
+            self.assertEqual(output, res.read())
