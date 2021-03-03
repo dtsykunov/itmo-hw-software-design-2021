@@ -14,6 +14,26 @@ class Shell:
         env: dict,
         parser: Parser,
     ):
+        """
+        Parameters
+        ----------
+        stdin : IOBase
+        stdout : IOBase
+        stderr : IOBase
+            Open file objects that will be used for
+            standard input, standard output and
+            standard error accordingly.
+
+        env : dict
+            Dictionary with environment variables.
+
+        parser : Parser
+            Parser instance that will be used to
+            parse input string recieved from standard
+            input.
+
+        """
+
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
