@@ -3,7 +3,7 @@ import sys
 import unittest as ut
 from contextlib import contextmanager
 
-from cli.builtins import Cat, Echo, Eq, Exit, Grep, Pwd, Wc
+from cli.builtins import Cat, Cd, Echo, Eq, Exit, Grep, Ls, Pwd, Wc
 from cli.common import Command
 from cli.shell import Shell
 
@@ -34,7 +34,7 @@ class ExecutorTest(ut.TestCase):
             sin.write(hello)
 
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, {}, None)
             sh._execute(pipeline)
@@ -46,7 +46,7 @@ class ExecutorTest(ut.TestCase):
         pipeline = [Echo("echo", [hello])]
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, {}, None)
             sh._execute(pipeline)
@@ -58,13 +58,28 @@ class ExecutorTest(ut.TestCase):
         pipeline = [Cat("cat", [testfile])]
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, {}, None)
             sh._execute(pipeline)
 
         with open(testfile, "r") as f:
             content = f.read()
+
+        with open(stdout[0], "r") as res:
+            self.assertEqual(content, res.read())
+
+    def test_cd(self):
+        dir = "../cli/tests"
+        pipeline = [Cd("cd", [dir])]
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
+                stderr[1], "w"
+        ) as serr:
+            sh = Shell(sin, sout, serr, {}, None)
+            sh._execute(pipeline)
+
+        content = "/cli/tests"
 
         with open(stdout[0], "r") as res:
             self.assertEqual(content, res.read())
@@ -76,10 +91,24 @@ class ExecutorTest(ut.TestCase):
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
 
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, {}, None)
             sh._execute(pipeline)
+
+        with open(stdout[0], "r") as res:
+            self.assertEqual(content, res.read())
+
+    def test_ls(self):
+        pipeline = [Ls("ls", [])]
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
+                stderr[1], "w"
+        ) as serr:
+            sh = Shell(sin, sout, serr, {}, None)
+            sh._execute(pipeline)
+
+        content = ".bashrc\n.profile\n.cache\n.wget-hsts\n.python_history\n"
 
         with open(stdout[0], "r") as res:
             self.assertEqual(content, res.read())
@@ -90,7 +119,7 @@ class ExecutorTest(ut.TestCase):
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
 
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, {"PWD": pwd}, None)
             sh._execute(pipeline)
@@ -102,7 +131,7 @@ class ExecutorTest(ut.TestCase):
         pipeline = [Exit("exit", [])]
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, {}, None)
             with self.assertRaises(SystemExit):
@@ -120,7 +149,7 @@ class ExecutorTest(ut.TestCase):
         ]
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, {}, None)
             sh._execute(pipeline)
@@ -131,7 +160,7 @@ class ExecutorTest(ut.TestCase):
         pipeline = [Eq("=", ["a", "b"])]
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             env = {}
             sh = Shell(sin, sout, serr, env, None)
@@ -148,7 +177,7 @@ This is another line that has the word test in it.\n"""
 
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, None, None)
             sh._execute(pipeline)
@@ -162,7 +191,7 @@ This is another line that has the word test in it.
 This one has capitalized Test.\n"""
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, None, None)
             sh._execute(pipeline)
@@ -175,7 +204,7 @@ This one has capitalized Test.\n"""
             output = f.read()
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, None, None)
             sh._execute(pipeline)
@@ -186,7 +215,7 @@ This one has capitalized Test.\n"""
         pipeline = [Grep("grep", ["-w", ".*?", "./tests/1.txt"])]
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, None, None)
             sh._execute(pipeline)
@@ -201,7 +230,7 @@ This one has capitalized Test.
 some dumb line\n"""
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, None, None)
             sh._execute(pipeline)
@@ -218,7 +247,7 @@ some dumb line\n"""
 This is another line that has the word test in it.\n"""
         stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
         with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
-            stderr[1], "w"
+                stderr[1], "w"
         ) as serr:
             sh = Shell(sin, sout, serr, None, None)
             sh._execute(pipeline)
