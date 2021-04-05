@@ -1,9 +1,10 @@
 import os
+import subprocess as sp
 import sys
 import unittest as ut
 from contextlib import contextmanager
 
-from cli.builtins import Cat, Echo, Eq, Exit, Grep, Pwd, Wc
+from cli.builtins import Cat, Cd, Echo, Eq, Exit, Grep, Ls, Pwd, Wc
 from cli.common import Command
 from cli.shell import Shell
 
@@ -69,6 +70,22 @@ class ExecutorTest(ut.TestCase):
         with open(stdout[0], "r") as res:
             self.assertEqual(content, res.read())
 
+    def test_cd(self):
+        os.chdir("../cli")
+        dir = "cli/builtins"
+        pipeline = [Cd("cd", [dir])]
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
+            stderr[1], "w"
+        ) as serr:
+            sh = Shell(sin, sout, serr, {}, None)
+            sh._execute(pipeline)
+
+        content = os.getcwd() + "\n"
+        with open(stdout[0], "r") as res:
+            self.assertEqual(content, res.read())
+        os.chdir("../..")
+
     def test_wc(self):
         testfile = "./tests/test.txt"
         content = "1 5 21"
@@ -83,6 +100,31 @@ class ExecutorTest(ut.TestCase):
 
         with open(stdout[0], "r") as res:
             self.assertEqual(content, res.read())
+
+    def test_ls(self):
+        pipeline = [Ls("ls", [])]
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
+            stderr[1], "w"
+        ) as serr:
+            sh = Shell(sin, sout, serr, {}, None)
+            sh._execute(pipeline)
+
+        content = sp.Popen(["ls", "."], shell=True, stdout=sp.PIPE).stdout.read()
+        with open(stdout[0], "r") as res:
+            self.assertEqual(content.decode(), res.read())
+
+        pipeline = [Ls("ls", ["tests"])]
+        stdin, stdout, stderr = os.pipe(), os.pipe(), os.pipe()
+        with open(stdin[0], "r") as sin, open(stdout[1], "w") as sout, open(
+                stderr[1], "w"
+        ) as serr:
+            sh = Shell(sin, sout, serr, {}, None)
+            sh._execute(pipeline)
+
+        content = sp.Popen(args=["ls tests/"], shell=True, stdout=sp.PIPE).stdout.read()
+        with open(stdout[0], "r") as res:
+            self.assertEqual(content.decode(), res.read())
 
     def test_pwd(self):
         pwd = os.getcwd()
